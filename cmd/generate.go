@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/absol27/sbomit/pkg/generator"
+	"github.com/sbomit/sbomit/pkg/generator"
 	"github.com/spf13/cobra"
 )
 

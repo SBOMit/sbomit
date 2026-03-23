@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/absol27/sbomit/cmd"
+	"github.com/sbomit/sbomit/cmd"
 )
 
 func main() {

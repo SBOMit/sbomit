@@ -14,8 +14,8 @@ import (
 	"github.com/protobom/protobom/pkg/writer"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/absol27/sbomit/pkg/attestation"
-	"github.com/absol27/sbomit/pkg/resolver"
+	"github.com/sbomit/sbomit/pkg/attestation"
+	"github.com/sbomit/sbomit/pkg/resolver"
 )
 
 type Options struct {

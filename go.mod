@@ -1,4 +1,4 @@
-module github.com/absol27/sbomit
+module github.com/sbomit/sbomit
 
 go 1.22.0
 

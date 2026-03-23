@@ -1,7 +1,7 @@
 # Reporting Security Issues
 
 Please report security issues **confidentially** using
-[GitHub's form](https://github.com/absol27/sbomit/security/advisories).
+[GitHub's form](https://github.com/sbomit/sbomit/security/advisories).
 
 **Note:** Please do not report such issues publicly on the issue tracker. The
 *issue tracker is intended for bug reports and feature requests.

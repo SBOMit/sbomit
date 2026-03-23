@@ -13,7 +13,7 @@ Generate Software Bill of Materials (SBOMs) from Witness attestations.
 ## Installation
 
 ```bash
-go install github.com/absol27/sbomit@latest
+go install github.com/sbomit/sbomit@latest
 ```
 
 ## Usage
@@ -86,4 +86,4 @@ Contributions are welcome.
    
 ## Contact  
    
-For any inquiries or issues, please open an issue on the [Sbomit GitHub repository](https://github.com/absol27/sbomit/issues).
+For any inquiries or issues, please open an issue on the [Sbomit GitHub repository](https://github.com/sbomit/sbomit/issues).
