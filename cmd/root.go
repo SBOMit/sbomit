@@ -16,13 +16,13 @@ packages (Python, Node.js, etc.), and outputs SBOMs in SPDX or CycloneDX formats
 
 Examples:
   # Generate an SBOM from a witness attestation file
-	sbomit generate --attestation attestation.json
+	sbomit generate attestation.json
 
   # Generate with specific output format
-	sbomit generate --attestation attestation.json --format cdx14
+	sbomit generate attestation.json --format cdx14
 
   # Generate and write to a file
-	sbomit generate --attestation attestation.json --output sbom.json`,
+	sbomit generate attestation.json --output sbom.json`,
 }
 
 func Execute() {

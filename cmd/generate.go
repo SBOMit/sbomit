@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	attestationFile  string
 	outputPath       string
 	outputFormat     string
 	documentName     string
@@ -22,7 +21,7 @@ var (
 )
 
 var generateCmd = &cobra.Command{
-	Use:   "generate",
+	Use:   "generate <attestation-file>",
 	Short: "Generate an SBOM from witness attestations",
 	Long: `Generate a Software Bill of Materials (SBOM) from witness attestation files.
 
@@ -38,9 +37,11 @@ Supported output formats:
   - cdx15: CycloneDX 1.5 JSON format
 
 Example:
-	sbomit generate --attestation witness-attestation.json --format spdx23 --output sbom.json`,
+	sbomit generate witness-attestation.json --format spdx23 --output sbom.json`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := runGenerate(); err != nil {
+		attestationFile := args[0]
+		if err := runGenerate(attestationFile); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -50,20 +51,17 @@ Example:
 func init() {
 	rootCmd.AddCommand(generateCmd)
 
-	generateCmd.Flags().StringVarP(&attestationFile, "attestation", "a", "", "Path to the witness attestation file (required)")
 	generateCmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output file path (default: stdout)")
 	generateCmd.Flags().StringVarP(&outputFormat, "format", "f", "spdx23", "Output format: spdx23, spdx22, cdx14, cdx15")
 	generateCmd.Flags().StringVarP(&documentName, "name", "n", "sbomit-sbom", "Name for the SBOM document")
 	generateCmd.Flags().StringVarP(&documentVersion, "version", "v", "0.0.1", "Version for the SBOM document")
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
-	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product"}, "Attestation types to process")
+	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product"}, "Attestation types to parse (comma-separated). Default: material,command-run,product")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft)")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (defaults to current directory)")
-
-	generateCmd.MarkFlagRequired("attestation")
 }
 
-func runGenerate() error {
+func runGenerate(attestationFile string) error {
 	if _, err := os.Stat(attestationFile); os.IsNotExist(err) {
 		return fmt.Errorf("attestation file not found: %s", attestationFile)
 	}

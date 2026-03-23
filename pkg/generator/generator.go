@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
 	"time"
 
@@ -58,11 +59,35 @@ func New(opts *Options) *Generator {
 }
 
 func (g *Generator) GenerateFromFile(attestationPath string) error {
-	attestations, err := attestation.ParseWitnessFile(attestationPath)
+	attestations, err := attestation.ParseWitnessFile(attestationPath, g.opts.AttestationTypes)
 	if err != nil {
 		return fmt.Errorf("failed to parse attestation file: %w", err)
 	}
+	g.printParsedAttestationSummary(attestations)
 	return g.GenerateFromAttestations(attestations)
+}
+
+func (g *Generator) printParsedAttestationSummary(attestations []attestation.TypedAttestation) {
+	counts := make(map[string]int)
+	for _, att := range attestations {
+		counts[att.Type]++
+	}
+
+	types := make([]string, 0, len(counts))
+	for t := range counts {
+		types = append(types, t)
+	}
+	sort.Strings(types)
+
+	parts := make([]string, 0, len(types))
+	for _, t := range types {
+		parts = append(parts, fmt.Sprintf("%s=%d", t, counts[t]))
+	}
+	if len(parts) == 0 {
+		parts = append(parts, "none")
+	}
+
+	fmt.Fprintf(os.Stderr, "Parsed attestations (%d total): %s\n", len(attestations), strings.Join(parts, ", "))
 }
 
 func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAttestation) error {

@@ -19,17 +19,22 @@ go install github.com/sbomit/sbomit@latest
 ## Usage
 
 ```bash
-sbomit generate --attestation attestation.json
+sbomit generate attestation.json
 
---attestation string    Path to witness attestation file (required)
 --output string         Output file path (default: stdout)
 --format string         Output format: spdx22, spdx23, cdx14, cdx15 (default: "spdx23")
 --name string           Application name (default: "sbomit-sbom")
 --version string        Application version (default: "0.0.1")
 --author strings        Author(s) - can be repeated
---types strings         Attestation types to process (default: material,command-run,product)
+--types strings         Attestation types to parse/process (comma-separated, default: material,command-run,product)
 --catalog string        Cataloger to run before processing attestations (supported: syft)
 --project-dir string    Project directory to scan with the cataloger (defaults to current directory)
+```
+
+By default, `sbomit` parses `material`, `command-run`, and `product` attestations. To restrict parsing on demand:
+
+```bash
+sbomit generate attestation.json --types command-run
 ```
 
 ## Syft Catalog Option
@@ -39,7 +44,7 @@ Sbomit outputs a flat list of dependencies. If the SBOM metadata syft derives in
 Example:
 
 ```bash
-sbomit generate --attestation attestation.json --catalog syft --project-dir /path/to/project
+sbomit generate attestation.json --catalog syft --project-dir /path/to/project
 ```
 
 ## Development
@@ -73,7 +78,7 @@ Run Resolvers → Filter Package Files → Generate SBOM
 ## Testing
 
 ```bash
-go run . generate --attestation test/sample-attestation.json
+go run . generate test/sample-attestation.json
 ``` 
    
 ## License  

@@ -8,16 +8,16 @@ import (
 	"strings"
 )
 
-func ParseWitnessFile(path string) ([]TypedAttestation, error) {
+func ParseWitnessFile(path string, typeFilter []string) ([]TypedAttestation, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read witness file: %w", err)
 	}
 
-	return ParseWitnessData(data)
+	return ParseWitnessData(data, typeFilter)
 }
 
-func ParseWitnessData(data []byte) ([]TypedAttestation, error) {
+func ParseWitnessData(data []byte, typeFilter []string) ([]TypedAttestation, error) {
 	var topLevel map[string]json.RawMessage
 	if err := json.Unmarshal(data, &topLevel); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal attestation JSON: %w", err)
@@ -29,7 +29,7 @@ func ParseWitnessData(data []byte) ([]TypedAttestation, error) {
 		if err := json.Unmarshal(data, &statement); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal in-toto statement: %w", err)
 		}
-		return extractAttestations(statement.Predicate)
+		return extractAttestations(statement.Predicate, typeFilter)
 	}
 
 	var rawEnvelope struct {
@@ -55,7 +55,7 @@ func ParseWitnessData(data []byte) ([]TypedAttestation, error) {
 		return nil, fmt.Errorf("failed to unmarshal in-toto statement: %w", err)
 	}
 
-	return extractAttestations(statement.Predicate)
+	return extractAttestations(statement.Predicate, typeFilter)
 }
 
 func decodeEnvelopePayload(rawPayload json.RawMessage) ([]byte, error) {
@@ -84,8 +84,19 @@ func decodeBase64Any(s string) ([]byte, error) {
 	return decoded, nil
 }
 
-func extractAttestations(predicate map[string]interface{}) ([]TypedAttestation, error) {
+func extractAttestations(predicate map[string]interface{}, typeFilter []string) ([]TypedAttestation, error) {
 	var result []TypedAttestation
+
+	filterSet := make(map[string]struct{})
+	if len(typeFilter) > 0 {
+		for _, t := range typeFilter {
+			normalized := normalizeAttestationType(t)
+			if normalized == "" {
+				continue
+			}
+			filterSet[normalized] = struct{}{}
+		}
+	}
 
 	attestationsRaw, ok := predicate["attestations"]
 	if !ok {
@@ -108,7 +119,13 @@ func extractAttestations(predicate map[string]interface{}) ([]TypedAttestation, 
 		}
 
 		if typeVal, ok := attMap["type"].(string); ok {
-			typed.Type = extractShortType(typeVal)
+			typed.Type = canonicalAttestationType(typeVal)
+		}
+
+		if len(filterSet) > 0 {
+			if _, ok := filterSet[typed.Type]; !ok {
+				continue
+			}
 		}
 
 		if attData, ok := attMap["attestation"].(map[string]interface{}); ok {
@@ -121,35 +138,32 @@ func extractAttestations(predicate map[string]interface{}) ([]TypedAttestation, 
 	return result, nil
 }
 
-// "https://witness.testifysec.com/attestation/material/v0.1" -> "material"
-func extractShortType(fullType string) string {
-	typeMap := map[string]string{
-		"material":    "material",
-		"product":     "product",
-		"command-run": "command-run",
-		"commandrun":  "command-run",
-		"environment": "environment",
-		"git":         "git",
-		"network":     "network",
-		"file":        "file",
+func normalizeAttestationType(s string) string {
+	return strings.ToLower(strings.TrimSpace(s))
+}
+
+func canonicalAttestationType(rawType string) string {
+	t := normalizeAttestationType(rawType)
+	if t == "" {
+		return ""
 	}
 
-	fullTypeLower := strings.ToLower(fullType)
-	for pattern, shortType := range typeMap {
-		if strings.Contains(fullTypeLower, pattern) {
-			return shortType
-		}
-	}
-
-	// Return the last path segment if no match
-	parts := strings.Split(fullType, "/")
+	// Handles both shorthand types and URI-style types.
+	parts := strings.Split(t, "/")
 	for i := len(parts) - 1; i >= 0; i-- {
-		if parts[i] != "" && !strings.HasPrefix(parts[i], "v") {
-			return parts[i]
+		segment := strings.TrimSpace(parts[i])
+		if segment == "" || strings.HasPrefix(segment, "v") {
+			continue
 		}
+		t = segment
+		break
 	}
 
-	return fullType
+	if t == "commandrun" {
+		return "command-run"
+	}
+
+	return t
 }
 
 // ExtractorChain to delegate extraction to type-specific extractors
