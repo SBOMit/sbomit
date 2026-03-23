@@ -39,7 +39,7 @@ func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainin
 			continue
 		}
 
-		module = decodeGoModulePath(module)
+		module = DecodeGoModulePath(module)
 		key := module + "@" + version
 		if _, ok := seen[key]; ok {
 			continue
@@ -127,7 +127,7 @@ func goModulePathVariants(module string) []string {
 		return nil
 	}
 
-	decoded := decodeGoModulePath(module)
+	decoded := DecodeGoModulePath(module)
 	encoded := encodeGoModulePath(decoded)
 
 	variants[decoded] = struct{}{}
@@ -141,7 +141,8 @@ func goModulePathVariants(module string) []string {
 	return result
 }
 
-func decodeGoModulePath(module string) string {
+// DecodeGoModulePath decodes Go module path escaping (!u → U) as specified by the module proxy protocol.
+func DecodeGoModulePath(module string) string {
 	if !strings.Contains(module, "!") {
 		return module
 	}

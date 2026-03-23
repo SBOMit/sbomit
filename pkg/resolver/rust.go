@@ -38,14 +38,14 @@ func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remain
 
 		if m := r.crateFileWithVer.FindStringSubmatch(pp); len(m) == 3 {
 			if r.isCargoRegistryPath(pp) {
-				chosenByName[normalizeRustCrateName(m[1])] = m[2]
+				chosenByName[NormalizeRustCrateName(m[1])] = m[2]
 			}
 			continue
 		}
 
 		if name, version, ok := r.findLastCrateDirWithVer(pp); ok {
 			if r.isCargoRegistryPath(pp) || strings.Contains(pp, "/crates/") || strings.Contains(pp, "/registry/src/") {
-				chosenByName[normalizeRustCrateName(name)] = version
+				chosenByName[NormalizeRustCrateName(name)] = version
 				continue
 			}
 			continue
@@ -101,7 +101,7 @@ func (r *RustResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFi
 		}
 
 		filters = append(filters, &rustPackageFilter{
-			packageName: normalizeRustCrateName(pkg.Name),
+			packageName: NormalizeRustCrateName(pkg.Name),
 			version:     pkg.Version,
 		})
 	}
@@ -191,6 +191,7 @@ func (r *RustResolver) findLastCrateDirWithVer(p string) (string, string, bool) 
 	return last[1], last[2], true
 }
 
-func normalizeRustCrateName(name string) string {
+// NormalizeRustCrateName lowercases and trims a Cargo crate name.
+func NormalizeRustCrateName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }

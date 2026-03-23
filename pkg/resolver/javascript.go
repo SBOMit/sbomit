@@ -37,7 +37,7 @@ func (r *JavaScriptResolver) Resolve(files []FileInfo) (packages []PackageInfo, 
 			continue
 		}
 
-		name = normalizeNpmPackageName(name)
+		name = NormalizeNpmPackageName(name)
 		key := name + "@" + version
 		if _, ok := seen[key]; ok {
 			continue
@@ -146,7 +146,8 @@ func extractPnpmVersion(segment string) string {
 	return segment[lastAt+1:]
 }
 
-func normalizeNpmPackageName(name string) string {
+// NormalizeNpmPackageName lowercases and trims an npm package name.
+func NormalizeNpmPackageName(name string) string {
 	name = strings.TrimSpace(name)
 	name = strings.ToLower(name)
 	return name

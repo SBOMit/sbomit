@@ -1,13 +1,15 @@
 package resolver
 
 type PackageInfo struct {
-	Name      string            `json:"name"`
-	Version   string            `json:"version"`
-	Ecosystem string            `json:"ecosystem"` // pypi, golang, cargo, npm, etc.
-	PURL      string            `json:"purl"`
-	Licenses  []string          `json:"licenses,omitempty"`
-	Hashes    map[string]string `json:"hashes,omitempty"`
-	FoundBy   string            `json:"found_by"` // which resolver found this
+	Name        string            `json:"name"`
+	Version     string            `json:"version"`
+	Ecosystem   string            `json:"ecosystem"` // pypi, golang, cargo, npm, etc.
+	PURL        string            `json:"purl"`
+	Licenses    []string          `json:"licenses,omitempty"`
+	Hashes      map[string]string `json:"hashes,omitempty"`
+	FoundBy     string            `json:"found_by"` // which resolver found this
+	DownloadURL string            `json:"download_url,omitempty"` // set by network resolvers
+	DownloadIP  string            `json:"download_ip,omitempty"`  // set by network resolvers
 }
 
 type FileInfo struct {

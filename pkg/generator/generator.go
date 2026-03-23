@@ -17,6 +17,7 @@ import (
 
 	"github.com/sbomit/sbomit/pkg/attestation"
 	"github.com/sbomit/sbomit/pkg/resolver"
+	"github.com/sbomit/sbomit/pkg/resolver/network"
 )
 
 type Options struct {
@@ -36,7 +37,7 @@ func DefaultOptions() *Options {
 		DocumentName:     "sbomit-generated-sbom",
 		DocumentVersion:  "0.0.1",
 		Authors:          []string{},
-		AttestationTypes: []string{"material", "command-run", "product"},
+		AttestationTypes: []string{"material", "command-run", "product", "network-trace"},
 		OutputFormat:     "spdx23",
 		Catalog:          "",
 		ProjectDir:       "",
@@ -46,6 +47,7 @@ func DefaultOptions() *Options {
 type Generator struct {
 	opts          *Options
 	resolverChain *resolver.ResolverChain
+	networkChain  *network.Chain
 }
 
 func New(opts *Options) *Generator {
@@ -55,6 +57,7 @@ func New(opts *Options) *Generator {
 	return &Generator{
 		opts:          opts,
 		resolverChain: resolver.NewResolverChain(),
+		networkChain:  network.NewChain(),
 	}
 }
 
@@ -124,6 +127,11 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	// Run through resolver chain (filtering + resolution)
 	result := g.resolverChain.ResolveAll(files)
 
+	// Resolve packages from network connections
+	networkConns := network.ExtractConnections(attestations)
+	networkPkgs := g.networkChain.ResolveAll(networkConns)
+	result = mergeNetworkPackages(result, networkPkgs)
+
 	attDoc := g.createDocument(result)
 
 	if baseDoc != nil {
@@ -133,6 +141,74 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	}
 
 	return g.writeOutput(attDoc)
+}
+
+// mergeNetworkPackages merges network-resolved packages into the file-resolved result.
+//
+// If a package is already present (matched by PURL), the download URL and IP from the
+// network connection are appended as PURL qualifiers:
+//
+//	pkg:pypi/certifi@2025.11.12?url=https://files.pythonhosted.org/...&ip=151.101.128.223
+//
+// If the package is not yet in the SBOM it is appended as a new entry.
+func mergeNetworkPackages(result resolver.ResolverResult, networkPkgs []resolver.PackageInfo) resolver.ResolverResult {
+	if len(networkPkgs) == 0 {
+		return result
+	}
+
+	existingByPURL := make(map[string]int, len(result.Packages))
+	for i, pkg := range result.Packages {
+		existingByPURL[pkg.PURL] = i
+	}
+
+	for _, npkg := range networkPkgs {
+		if idx, found := existingByPURL[npkg.PURL]; found {
+			result.Packages[idx].PURL = withNetworkQualifiers(result.Packages[idx].PURL, npkg.DownloadURL, npkg.DownloadIP)
+		} else {
+			result.Packages = append(result.Packages, npkg)
+			existingByPURL[npkg.PURL] = len(result.Packages) - 1
+		}
+	}
+
+	return result
+}
+
+// withNetworkQualifiers appends ?url=...&ip=... qualifiers to a PURL.
+// Values are percent-encoded per RFC 3986 as required by the PURL spec.
+func withNetworkQualifiers(purl, downloadURL, downloadIP string) string {
+	if downloadURL == "" && downloadIP == "" {
+		return purl
+	}
+
+	sep := "?"
+	if strings.Contains(purl, "?") {
+		sep = "&"
+	}
+
+	var parts []string
+	if downloadURL != "" {
+		parts = append(parts, "url="+purlEncodeValue(downloadURL))
+	}
+	if downloadIP != "" {
+		parts = append(parts, "ip="+purlEncodeValue(downloadIP))
+	}
+
+	return purl + sep + strings.Join(parts, "&")
+}
+
+// purlEncodeValue percent-encodes a PURL qualifier value (RFC 3986 §2.1).
+// We encode the characters that would otherwise break PURL parsing: & = ? #
+func purlEncodeValue(s string) string {
+	var b strings.Builder
+	for _, c := range s {
+		switch c {
+		case '&', '=', '?', '#', '%':
+			fmt.Fprintf(&b, "%%%02X", c)
+		default:
+			b.WriteRune(c)
+		}
+	}
+	return b.String()
 }
 
 func (g *Generator) createDocument(result resolver.ResolverResult) *sbom.Document {

@@ -25,10 +25,10 @@ var generateCmd = &cobra.Command{
 	Short: "Generate an SBOM from witness attestations",
 	Long: `Generate a Software Bill of Materials (SBOM) from witness attestation files.
 
-This command parses witness attestations, extracts file information from 
-material, command-run, and product attestations, resolves files to packages
-where possible (supporting Python packages currently), and outputs an SBOM
-in the specified format.
+This command parses witness attestations, extracts file and network information
+from material, command-run, product, and network-trace attestations, resolves
+files and network connections to packages by ecosystem, and outputs an SBOM in
+the specified format.
 
 Supported output formats:
   - spdx23 (default): SPDX 2.3 JSON format
@@ -56,7 +56,7 @@ func init() {
 	generateCmd.Flags().StringVarP(&documentName, "name", "n", "sbomit-sbom", "Name for the SBOM document")
 	generateCmd.Flags().StringVarP(&documentVersion, "version", "v", "0.0.1", "Version for the SBOM document")
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
-	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product"}, "Attestation types to parse (comma-separated). Default: material,command-run,product")
+	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated). Default: material,command-run,product,network-trace")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft)")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (defaults to current directory)")
 }

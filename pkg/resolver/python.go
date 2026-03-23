@@ -38,7 +38,7 @@ func (r *PythonResolver) Resolve(files []FileInfo) (packages []PackageInfo, rema
 
 		matches := r.metadataPattern.FindStringSubmatch(np)
 		if len(matches) >= 4 {
-			name := normalizePackageName(matches[1])
+			name := NormalizePackageName(matches[1])
 			version := matches[2]
 			key := name + "@" + version
 
@@ -148,8 +148,8 @@ func (r *PythonResolver) isPythonPath(p string) bool {
 		strings.Contains(p, ".dist-info")
 }
 
-// normalizePackageName normalizes a Python package name according to PEP 503
-func normalizePackageName(name string) string {
+// NormalizePackageName normalizes a Python package name according to PEP 503.
+func NormalizePackageName(name string) string {
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, "_", "-")
 	// Remove multiple consecutive hyphens
