@@ -18,29 +18,36 @@ func ParseWitnessFile(path string) ([]TypedAttestation, error) {
 }
 
 func ParseWitnessData(data []byte) ([]TypedAttestation, error) {
-	var envelope WitnessEnvelope
-	if err := json.Unmarshal(data, &envelope); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal envelope: %w", err)
+	var topLevel map[string]json.RawMessage
+	if err := json.Unmarshal(data, &topLevel); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal attestation JSON: %w", err)
 	}
 
-	// Decode b64 payload
-	payload := envelope.Payload
-	if len(payload) == 0 {
-		var rawEnvelope struct {
-			PayloadType string      `json:"payloadType"`
-			Payload     string      `json:"payload"`
-			Signatures  []Signature `json:"signatures"`
+	// Some witness outputs are direct in-toto statements (not DSSE envelopes).
+	if _, hasPredicate := topLevel["predicate"]; hasPredicate {
+		var statement InTotoStatement
+		if err := json.Unmarshal(data, &statement); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal in-toto statement: %w", err)
 		}
-		if err := json.Unmarshal(data, &rawEnvelope); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal raw envelope: %w", err)
-		}
+		return extractAttestations(statement.Predicate)
+	}
 
-		decoded, err := base64.StdEncoding.DecodeString(rawEnvelope.Payload)
+	var rawEnvelope struct {
+		PayloadType string          `json:"payloadType"`
+		Payload     json.RawMessage `json:"payload"`
+		Signatures  []Signature     `json:"signatures"`
+	}
+	if err := json.Unmarshal(data, &rawEnvelope); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal DSSE envelope: %w", err)
+	}
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode payload: %w", err)
-		}
-		payload = decoded
+	if len(rawEnvelope.Payload) == 0 {
+		return nil, fmt.Errorf("missing payload in attestation JSON (expected direct in-toto statement or DSSE envelope)")
+	}
+
+	payload, err := decodeEnvelopePayload(rawEnvelope.Payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode DSSE payload: %w", err)
 	}
 
 	var statement InTotoStatement
@@ -49,6 +56,32 @@ func ParseWitnessData(data []byte) ([]TypedAttestation, error) {
 	}
 
 	return extractAttestations(statement.Predicate)
+}
+
+func decodeEnvelopePayload(rawPayload json.RawMessage) ([]byte, error) {
+	var payloadStr string
+	if err := json.Unmarshal(rawPayload, &payloadStr); err == nil {
+		decoded, decodeErr := decodeBase64Any(payloadStr)
+		if decodeErr != nil {
+			return nil, decodeErr
+		}
+		return decoded, nil
+	}
+
+	// If payload is already embedded JSON, use it as-is.
+	if len(rawPayload) > 0 && (rawPayload[0] == '{' || rawPayload[0] == '[') {
+		return rawPayload, nil
+	}
+
+	return nil, fmt.Errorf("unsupported payload format")
+}
+
+func decodeBase64Any(s string) ([]byte, error) {
+	decoded, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, fmt.Errorf("base64 decoding failed: %w", err)
+	}
+	return decoded, nil
 }
 
 func extractAttestations(predicate map[string]interface{}) ([]TypedAttestation, error) {
