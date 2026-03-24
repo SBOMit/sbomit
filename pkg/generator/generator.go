@@ -95,22 +95,23 @@ func (g *Generator) printParsedAttestationSummary(attestations []attestation.Typ
 
 func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAttestation) error {
 	var baseDoc *sbom.Document
-	if strings.TrimSpace(g.opts.Catalog) != "" {
-		if strings.ToLower(strings.TrimSpace(g.opts.Catalog)) != "syft" {
-			return fmt.Errorf("unsupported catalog: %s (supported: syft)", g.opts.Catalog)
+	var err error
+
+	projectDir := strings.TrimSpace(g.opts.ProjectDir)
+	if projectDir == "" {
+		projectDir, err = os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to determine project directory: %w", err)
 		}
-		var err error
-		projectDir := strings.TrimSpace(g.opts.ProjectDir)
-		if projectDir == "" {
-			projectDir, err = os.Getwd()
-			if err != nil {
-				return fmt.Errorf("failed to determine project directory: %w", err)
-			}
-		}
+	}
+
+	switch g.opts.Catalog {
+	case "syft":
 		baseDoc, err = g.runSyft(projectDir)
 		if err != nil {
 			return fmt.Errorf("failed to run syft: %w", err)
 		}
+	default:
 	}
 
 	attFiles := attestation.ExtractFilesFromAttestations(attestations, g.opts.AttestationTypes)
@@ -355,7 +356,6 @@ func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {
 		return nil, fmt.Errorf("create temp file: %w", err)
 	}
 	defer os.Remove(tmpFile.Name())
-	defer tmpFile.Close()
 
 	var stderr bytes.Buffer
 	cmd := exec.Command("syft", projectDir, "-o", "spdx-json")

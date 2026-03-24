@@ -19,16 +19,19 @@ go install github.com/sbomit/sbomit@latest
 ## Usage
 
 ```bash
-sbomit generate attestation.json
+Usage:
+  sbomit generate <attestation-file> [flags]
 
---output string         Output file path (default: stdout)
---format string         Output format: spdx22, spdx23, cdx14, cdx15 (default: "spdx23")
---name string           Application name (default: "sbomit-sbom")
---version string        Application version (default: "0.0.1")
---author strings        Author(s) - can be repeated
---types strings         Attestation types to parse/process (comma-separated, default: material,command-run,product)
---catalog string        Cataloger to run before processing attestations (supported: syft)
---project-dir string    Project directory to scan with the cataloger (defaults to current directory)
+Flags:
+      --author strings       Document authors (can be specified multiple times)
+  -c, --catalog string       Cataloger to run before processing attestations (supported: syft)
+  -f, --format string        SBOM output format (supported: spdx23, spdx22, cdx14, cdx15) (default "spdx23")
+  -h, --help                 help for generate
+  -n, --name string          Name for the SBOM document (default "sbomit-sbom")
+  -o, --output string        Output file path (default: stdout)
+      --project-dir string   Project directory to scan with the cataloger (default: current directory)
+      --types strings        Attestation types to parse (comma-separated). (default [material,command-run,product,network-trace])
+  -v, --version string       Version for the SBOM document (default "0.0.1")
 ```
 
 By default, `sbomit` parses `material`, `command-run`, and `product` attestations. To restrict parsing on demand:

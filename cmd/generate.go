@@ -52,13 +52,13 @@ func init() {
 	rootCmd.AddCommand(generateCmd)
 
 	generateCmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output file path (default: stdout)")
-	generateCmd.Flags().StringVarP(&outputFormat, "format", "f", "spdx23", "Output format: spdx23, spdx22, cdx14, cdx15")
+	generateCmd.Flags().StringVarP(&outputFormat, "format", "f", "spdx23", "SBOM output format (supported: spdx23, spdx22, cdx14, cdx15)")
 	generateCmd.Flags().StringVarP(&documentName, "name", "n", "sbomit-sbom", "Name for the SBOM document")
 	generateCmd.Flags().StringVarP(&documentVersion, "version", "v", "0.0.1", "Version for the SBOM document")
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
-	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated). Default: material,command-run,product,network-trace")
+	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated).")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft)")
-	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (defaults to current directory)")
+	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
 }
 
 func runGenerate(attestationFile string) error {
@@ -71,7 +71,14 @@ func runGenerate(attestationFile string) error {
 		"spdx-2.3": true, "spdx-2.2": true, "cdx-1.4": true, "cdx-1.5": true,
 	}
 	if !validFormats[strings.ToLower(outputFormat)] {
-		return fmt.Errorf("invalid output format: %s (valid: spdx23, spdx22, cdx14, cdx15)", outputFormat)
+		return fmt.Errorf("invalid output format: %s (supported: spdx23, spdx22, cdx14, cdx15)", outputFormat)
+	}
+
+	validCatalogs := map[string]bool{
+		"": true, "syft": true,
+	}
+	if !validCatalogs[strings.ToLower(catalog)] {
+		return fmt.Errorf("invalid catalog: %s (supported: syft)", catalog)
 	}
 
 	opts := &generator.Options{
