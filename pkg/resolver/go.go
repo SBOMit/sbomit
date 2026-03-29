@@ -111,10 +111,10 @@ func (r *GoResolver) isGoPath(p string) bool {
 }
 
 func (r *GoResolver) extractModuleVersion(p string) (string, string, bool) {
-	if matches := r.moduleDirRe.FindStringSubmatch(p); len(matches) == 3 {
+	if matches := r.moduleCacheRe.FindStringSubmatch(p); len(matches) == 4 {
 		return matches[1], matches[2], true
 	}
-	if matches := r.moduleCacheRe.FindStringSubmatch(p); len(matches) == 4 {
+	if matches := r.moduleDirRe.FindStringSubmatch(p); len(matches) == 3 {
 		return matches[1], matches[2], true
 	}
 	return "", "", false
