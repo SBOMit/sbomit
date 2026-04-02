@@ -37,7 +37,7 @@ func DefaultOptions() *Options {
 		DocumentName:     "sbomit-generated-sbom",
 		DocumentVersion:  "0.0.1",
 		Authors:          []string{},
-		AttestationTypes: []string{"material", "command-run", "product", "network-trace"},
+		AttestationTypes: []string{"material", "command-run", "product", "network-trace", "maven"},
 		OutputFormat:     "spdx23",
 		Catalog:          "",
 		ProjectDir:       "",
@@ -132,6 +132,10 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	networkConns := network.ExtractConnections(attestations)
 	networkPkgs := g.networkChain.ResolveAll(networkConns)
 	result = mergeNetworkPackages(result, networkPkgs)
+
+	// Resolve packages declared in Maven attestor (structured dependency list)
+	mavenPkgs := extractMavenAttestorPackages(attestations)
+	result = mergeNewPackages(result, mavenPkgs)
 
 	attDoc := g.createDocument(result)
 
@@ -492,6 +496,73 @@ func sanitizeID(s string) string {
 	for strings.Contains(result, "--") {
 		result = strings.ReplaceAll(result, "--", "-")
 	}
+	return result
+}
+
+func extractMavenAttestorPackages(attestations []attestation.TypedAttestation) []resolver.PackageInfo {
+	var packages []resolver.PackageInfo
+	seen := make(map[string]struct{})
+
+	for _, att := range attestations {
+		if att.Type != "maven" {
+			continue
+		}
+
+		depsRaw, ok := att.Data["dependencies"].([]interface{})
+		if !ok {
+			continue
+		}
+
+		for _, d := range depsRaw {
+			dep, ok := d.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			groupID, _ := dep["groupid"].(string)
+			artifactID, _ := dep["artifactid"].(string)
+			version, _ := dep["version"].(string)
+
+			if groupID == "" || artifactID == "" || version == "" {
+				continue
+			}
+
+			purl := "pkg:maven/" + groupID + "/" + artifactID + "@" + version
+			if _, already := seen[purl]; already {
+				continue
+			}
+			seen[purl] = struct{}{}
+
+			packages = append(packages, resolver.PackageInfo{
+				Name:      artifactID,
+				Version:   version,
+				Ecosystem: "maven",
+				PURL:      purl,
+				FoundBy:   "attestation:maven",
+			})
+		}
+	}
+
+	return packages
+}
+
+func mergeNewPackages(result resolver.ResolverResult, newPkgs []resolver.PackageInfo) resolver.ResolverResult {
+	if len(newPkgs) == 0 {
+		return result
+	}
+
+	existingByPURL := make(map[string]struct{}, len(result.Packages))
+	for _, pkg := range result.Packages {
+		existingByPURL[pkg.PURL] = struct{}{}
+	}
+
+	for _, pkg := range newPkgs {
+		if _, found := existingByPURL[pkg.PURL]; !found {
+			result.Packages = append(result.Packages, pkg)
+			existingByPURL[pkg.PURL] = struct{}{}
+		}
+	}
+
 	return result
 }
 
