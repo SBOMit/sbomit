@@ -111,6 +111,11 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 		if err != nil {
 			return fmt.Errorf("failed to run syft: %w", err)
 		}
+	case "trivy":
+		baseDoc, err = g.runTrivy(projectDir)
+		if err != nil {
+			return fmt.Errorf("failed to run trivy: %w", err)
+		}
 	default:
 	}
 
@@ -374,6 +379,31 @@ func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {
 		return nil, fmt.Errorf("close syft output: %w", err)
 	}
 
+	r := reader.New()
+	return r.ParseFile(tmpFile.Name())
+}
+
+func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
+	if _, err := exec.LookPath("trivy"); err != nil {
+		return nil, fmt.Errorf("trivy not found in PATH. Install options:\n  - macOS (brew): brew install aquasecurity/trivy/trivy\n  - other platforms: https://aquasecurity.github.io/trivy/latest/getting-started/installation/")
+	}
+
+	tmpFile, err := os.CreateTemp("", "sbomit-trivy-*.json")
+	if err != nil {
+		return nil, fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	var stderr bytes.Buffer
+	// Tell Trivy to scan the directory and output an SPDX JSON file
+	cmd := exec.Command("trivy", "fs", "--format", "spdx-json", "--output", tmpFile.Name(), projectDir)
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("trivy failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	// Parse the SBOM using protobom (the same way we do with Syft)
 	r := reader.New()
 	return r.ParseFile(tmpFile.Name())
 }
