@@ -46,6 +46,7 @@ func NewResolverChain() *ResolverChain {
 			NewGoResolver(),
 			NewRustResolver(),
 			NewJavaScriptResolver(),
+			NewJavaResolver(),
 		},
 		filter: NewFileFilter(),
 	}
