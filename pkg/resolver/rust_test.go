@@ -190,7 +190,7 @@ expectedRemaining: 0,
 name: "Compiled artifacts are filtered if owned by known crate",
 files: []FileInfo{
 {Path: "/home/user/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.130/src/lib.rs"},
-{Path: "/home/user/project/target/debug/deps/libserde-123.rlib"},
+{Path: "/home/user/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.130/libserde.rlib"},
 },
 expectedPackages: []PackageInfo{
 {
@@ -265,4 +265,39 @@ assert.True(t, rustFilter.Matches("/home/user/.cargo/registry/cache/github.com-1
 assert.False(t, rustFilter.Matches("/home/user/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.131/src/lib.rs"))
 // Non-matching package
 assert.False(t, rustFilter.Matches("/home/user/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.4.14/src/lib.rs"))
+}
+
+func TestNormalizeRustCrateName(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Uppercase letters",
+			input:    "SerDe",
+			expected: "serde",
+		},
+		{
+			name:     "With spaces",
+			input:    "  Log  ",
+			expected: "log",
+		},
+		{
+			name:     "Mixed case and spaces",
+			input:    "  TokIO  ",
+			expected: "tokio",
+		},
+		{
+			name:     "Already normalized",
+			input:    "regex",
+			expected: "regex",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, NormalizeRustCrateName(tt.input))
+		})
+	}
 }
