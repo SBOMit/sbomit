@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/sbomit/sbomit/pkg/attestation"
+	"github.com/sbomit/sbomit/pkg/diff"
 	"github.com/sbomit/sbomit/pkg/resolver"
 	"github.com/sbomit/sbomit/pkg/resolver/network"
 )
@@ -29,6 +30,7 @@ type Options struct {
 	OutputPath       string
 	Catalog          string
 	ProjectDir       string
+	ShowEnrichment   bool
 }
 
 // DefaultOptions returns default generator options
@@ -111,6 +113,11 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 		if err != nil {
 			return fmt.Errorf("failed to run syft: %w", err)
 		}
+	case "trivy":
+		baseDoc, err = g.runTrivy(projectDir)
+		if err != nil {
+			return fmt.Errorf("failed to run trivy: %w", err)
+		}
 	default:
 	}
 
@@ -137,6 +144,10 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 
 	if baseDoc != nil {
 		g.applyMetadata(baseDoc)
+		if g.opts.ShowEnrichment {
+			summary := diff.CompareSBOM(baseDoc, attDoc)
+			diff.PrintEnrichmentSummary(summary)
+		}
 		g.mergePreferAttestation(baseDoc, attDoc)
 		return g.writeOutput(baseDoc)
 	}
@@ -319,7 +330,6 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 			}
 		}
 
-		// Fallback to ID match if no PURL match
 		if targetNode == nil {
 			if baseNode, ok := baseIndexByID[attNode.Id]; ok {
 				targetNode = baseNode
@@ -330,7 +340,7 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 			// Merge: prefer attestation values over syft
 			targetNode.Update(attNode)
 		} else {
-			// New node from attestation
+
 			baseDoc.NodeList.AddNode(attNode)
 			baseIndexByID[attNode.Id] = attNode
 			if attPurl != "" {
@@ -344,6 +354,29 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 	mergeList.Edges = attDoc.NodeList.Edges
 	mergeList.RootElements = attDoc.NodeList.RootElements
 	baseDoc.NodeList.Add(mergeList)
+}
+
+func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
+	if _, err := exec.LookPath("trivy"); err != nil {
+		return nil, fmt.Errorf("trivy not found in PATH. Install options:\n  - macOS (brew): brew install trivy\n  - curl: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin\n  - other platforms: https://aquasecurity.github.io/trivy/latest/getting-started/installation/")
+	}
+
+	tmpFile, err := os.CreateTemp("", "sbomit-trivy-*.json")
+	if err != nil {
+		return nil, fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	var stderr bytes.Buffer
+	cmd := exec.Command("trivy", "fs", projectDir, "--format", "spdx-json", "--output", tmpFile.Name())
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("trivy failed: %w: %s", err, strings.TrimSpace(stderr.String()))
+	}
+
+	r := reader.New()
+	return r.ParseFile(tmpFile.Name())
 }
 
 func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {
