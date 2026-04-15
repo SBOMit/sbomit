@@ -18,6 +18,7 @@ var (
 	attestationTypes []string
 	catalog          string
 	projectDir       string
+	showEnrichment   bool
 )
 
 var generateCmd = &cobra.Command{
@@ -59,6 +60,7 @@ func init() {
 	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated).")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft, trivy)")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
+	generateCmd.Flags().BoolVar(&showEnrichment, "show-enrichment", false, "Output a human-readable summary displaying the attestation-based enrichment")
 }
 
 func runGenerate(attestationFile string) error {
@@ -90,6 +92,7 @@ func runGenerate(attestationFile string) error {
 		OutputPath:       outputPath,
 		Catalog:          catalog,
 		ProjectDir:       projectDir,
+		ShowEnrichment:   showEnrichment,
 	}
 
 	gen := generator.New(opts)
