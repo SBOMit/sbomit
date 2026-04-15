@@ -34,7 +34,7 @@ Flags:
   -v, --version string       Version for the SBOM document (default "0.0.1")
 ```
 
-By default, `sbomit` parses `material`, `command-run`, and `product` attestations. To restrict parsing on demand:
+By default, `sbomit` parses `material`, `command-run`, `product`, and `network-trace` attestations. To restrict parsing on demand:
 
 ```bash
 sbomit generate attestation.json --types command-run
@@ -55,9 +55,10 @@ sbomit generate attestation.json --catalog syft --project-dir /path/to/project
 ### Attestation Extractors
 
 Modular extractors for different attestation types:
-- `MaterialExtractor` - Build Input materials
+- `MaterialExtractor` - Build input materials
 - `CommandRunExtractor` - Opened files from processes
 - `ProductExtractor` - Built artifacts
+- `NetworkTrace` - External download connections
 
 Implement `Extractor` interface to add new types.
 
@@ -74,8 +75,9 @@ Each resolver implements `Resolver` and optionally `PackageFileFilterer` to filt
 ### Processing Pipeline
 
 ```
-Attestation → Extract Files → Filter Cache Files → 
-Run Resolvers → Filter Package Files → Generate SBOM
+Attestation → Extract Files & Network Conns → Run Resolvers → 
+Filter Package Files → Resolve Network PURLs → Merge with Catalog (Syft) → 
+Generate SBOM Document
 ```
 
 ## Testing
