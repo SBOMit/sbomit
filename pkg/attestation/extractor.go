@@ -24,6 +24,7 @@ func NewExtractorChain() *ExtractorChain {
 	chain.RegisterExtractor(NewMaterialExtractor())
 	chain.RegisterExtractor(NewCommandRunExtractor())
 	chain.RegisterExtractor(NewProductExtractor())
+	chain.RegisterExtractor(NewMavenExtractor())
 
 	return chain
 }
