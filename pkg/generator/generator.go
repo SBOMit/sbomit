@@ -37,7 +37,7 @@ func DefaultOptions() *Options {
 		DocumentName:     "sbomit-generated-sbom",
 		DocumentVersion:  "0.0.1",
 		Authors:          []string{},
-		AttestationTypes: []string{"material", "command-run", "product", "network-trace"},
+		AttestationTypes: []string{"material", "command-run", "product", "network-trace", "maven"},
 		OutputFormat:     "spdx23",
 		Catalog:          "",
 		ProjectDir:       "",

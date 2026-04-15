@@ -30,11 +30,11 @@ Flags:
   -n, --name string          Name for the SBOM document (default "sbomit-sbom")
   -o, --output string        Output file path (default: stdout)
       --project-dir string   Project directory to scan with the cataloger (default: current directory)
-      --types strings        Attestation types to parse (comma-separated). (default [material,command-run,product,network-trace])
+      --types strings        Attestation types to parse (comma-separated). (default [material,command-run,product,network-trace,maven])
   -v, --version string       Version for the SBOM document (default "0.0.1")
 ```
 
-By default, `sbomit` parses `material`, `command-run`, and `product` attestations. To restrict parsing on demand:
+By default, `sbomit` parses `material`, `command-run`, `product`, `network-trace`, and `maven` attestations. To restrict parsing on demand:
 
 ```bash
 sbomit generate attestation.json --types command-run
@@ -55,9 +55,11 @@ sbomit generate attestation.json --catalog syft --project-dir /path/to/project
 ### Attestation Extractors
 
 Modular extractors for different attestation types:
-- `MaterialExtractor` - Build Input materials
+- `MaterialExtractor` - Build input materials
 - `CommandRunExtractor` - Opened files from processes
 - `ProductExtractor` - Built artifacts
+- `NetworkTrace` - External download connections
+- `MavenExtractor` - Structured Java dependencies
 
 Implement `Extractor` interface to add new types.
 
@@ -68,14 +70,16 @@ Ecosystem-specific package resolvers that extract packages from file paths:
 - `GoResolver` - Resolves from module cache paths under `pkg/mod/`
 - `RustResolver` - Resolves from Cargo registry paths
 - `JavaScriptResolver` - Resolves pnpm-style paths under `node_modules/.pnpm/`
+- `JavaResolver` - Resolves from Maven local repo (`.m2`) and Gradle caches
 
 Each resolver implements `Resolver` and optionally `PackageFileFilterer` to filter its own package files.
 
 ### Processing Pipeline
 
 ```
-Attestation → Extract Files → Filter Cache Files → 
-Run Resolvers → Filter Package Files → Generate SBOM
+Attestation → Extract Files & Network Conns → Run Resolvers → 
+Filter Package Files → Resolve Network PURLs → Merge with Catalog (Syft) → 
+Generate SBOM Document
 ```
 
 ## Testing
