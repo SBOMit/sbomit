@@ -385,7 +385,7 @@ func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {
 
 func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
 	if _, err := exec.LookPath("trivy"); err != nil {
-		return nil, fmt.Errorf("trivy not found in PATH. Install options:\n  - macOS (brew): brew install aquasecurity/trivy/trivy\n  - other platforms: https://aquasecurity.github.io/trivy/latest/getting-started/installation/")
+		return nil, fmt.Errorf("trivy not found in PATH. Install options:\n  - macOS (brew): brew install trivy\n  - other platforms: https://trivy.dev/docs/latest/getting-started/installation/")
 	}
 
 	tmpFile, err := os.CreateTemp("", "sbomit-trivy-*.json")
