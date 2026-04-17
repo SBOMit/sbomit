@@ -18,6 +18,7 @@ var (
 	attestationTypes []string
 	catalog          string
 	projectDir       string
+	summaryFlag      bool
 )
 
 var generateCmd = &cobra.Command{
@@ -57,8 +58,9 @@ func init() {
 	generateCmd.Flags().StringVarP(&documentVersion, "version", "v", "0.0.1", "Version for the SBOM document")
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
 	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated).")
-	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft, trivy)")
+	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft)")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
+	generateCmd.Flags().BoolVar(&summaryFlag, "summary", false, "Print a detailed package listing alongside the human-readable summary")
 }
 
 func runGenerate(attestationFile string) error {
@@ -75,10 +77,10 @@ func runGenerate(attestationFile string) error {
 	}
 
 	validCatalogs := map[string]bool{
-		"": true, "syft": true, "trivy": true,
+		"": true, "syft": true,
 	}
 	if !validCatalogs[strings.ToLower(catalog)] {
-		return fmt.Errorf("invalid catalog: %s (supported: syft, trivy)", catalog)
+		return fmt.Errorf("invalid catalog: %s (supported: syft)", catalog)
 	}
 
 	opts := &generator.Options{
@@ -93,13 +95,17 @@ func runGenerate(attestationFile string) error {
 	}
 
 	gen := generator.New(opts)
-	if err := gen.GenerateFromFile(attestationFile); err != nil {
+	doc, err := gen.GenerateFromFile(attestationFile)
+	if err != nil {
 		return fmt.Errorf("failed to generate SBOM: %w", err)
 	}
 
 	if outputPath != "" {
 		fmt.Fprintf(os.Stderr, "SBOM written to %s\n", outputPath)
 	}
+
+	summary := generator.GenerateSummary(doc)
+	generator.PrintSummary(summary, summaryFlag)
 
 	return nil
 }
