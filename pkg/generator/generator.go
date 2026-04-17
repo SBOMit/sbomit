@@ -20,6 +20,8 @@ import (
 	"github.com/sbomit/sbomit/pkg/resolver/network"
 )
 
+var Version = "0.0.1"
+
 type Options struct {
 	DocumentName     string
 	DocumentVersion  string
@@ -231,7 +233,7 @@ func (g *Generator) createDocument(result resolver.ResolverResult) *sbom.Documen
 
 	doc.Metadata.Tools = append(doc.Metadata.Tools, &sbom.Tool{
 		Name:    "sbomit",
-		Version: "0.0.1",
+		Version: Version,
 		Vendor:  "SBOMit",
 	})
 
@@ -282,7 +284,7 @@ func (g *Generator) applyMetadata(doc *sbom.Document) {
 
 	doc.Metadata.Tools = append(doc.Metadata.Tools, &sbom.Tool{
 		Name:    "sbomit",
-		Version: "0.0.1",
+		Version: Version,
 		Vendor:  "SBOMit",
 	})
 }
