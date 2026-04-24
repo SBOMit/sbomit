@@ -178,8 +178,7 @@ func npmPURL(name, version string) string {
 }
 
 func nodeModulesPathContainsPackage(p, packageName string) bool {
-	return strings.Contains(p, "/node_modules/"+packageName+"/") ||
-		strings.Contains(p, "node_modules/"+packageName+"/")
+	return strings.Contains(p, "node_modules/"+packageName+"/")
 }
 
 // NormalizeNpmPackageName lowercases and trims an npm package name.
