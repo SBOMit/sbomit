@@ -150,16 +150,46 @@ if g.opts.ShowPackages || len(g.opts.ShowPackageNames) > 0 {
 
                 fmt.Fprintln(os.Stderr, "\n=== PACKAGE DISCOVERY ===")
 
-                for _, name := range g.opts.ShowPackageNames {
-                        normalizedName := strings.ToLower(strings.TrimSpace(name))
-                        if pkg, ok := packageMap[normalizedName]; ok {
-                                fmt.Fprintf(os.Stderr, "✓ %s %s\n", pkg.Name, pkg.Version)
-                                found++
-                        } else {
-                                fmt.Fprintf(os.Stderr, "✗ %s not found\n", name)
-                                missing++
+              
+
+
+				//rahul
+				for _, name := range g.opts.ShowPackageNames {
+                   normalizedName := strings.ToLower(strings.TrimSpace(name))
+
+                    if pkg, ok := packageMap[normalizedName]; ok {
+                fmt.Fprintf(os.Stderr, "✓ %s %s\n", pkg.Name, pkg.Version)
+
+                if g.opts.ShowPackageSPDX {
+                        fmt.Fprintln(os.Stderr, "  Package Details:")
+                        fmt.Fprintf(os.Stderr, "    Name: %s\n", pkg.Name)
+                        fmt.Fprintf(os.Stderr, "    Version: %s\n", pkg.Version)
+                        fmt.Fprintf(os.Stderr, "    Ecosystem: %s\n", pkg.Ecosystem)
+                        fmt.Fprintf(os.Stderr, "    PURL: %s\n", pkg.PURL)
+
+                        if len(pkg.Licenses) > 0 {
+                                fmt.Fprintf(os.Stderr, "    Licenses: %s\n", strings.Join(pkg.Licenses, ", "))
+                        }
+
+                        if len(pkg.Hashes) > 0 {
+                                fmt.Fprintln(os.Stderr, "    Hashes:")
+                                for algo, hash := range pkg.Hashes {
+                                        fmt.Fprintf(os.Stderr, "      %s: %s\n", algo, hash)
+                                }
                         }
                 }
+
+                found++
+        } else {
+                fmt.Fprintf(os.Stderr, "✗ %s not found\n", name)
+                missing++
+        }
+}
+
+
+
+
+
 
                 fmt.Fprintf(os.Stderr, "\nFound: %d\nMissing: %d\n", found, missing)
                 fmt.Fprintln(os.Stderr, "=========================\n")
