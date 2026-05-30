@@ -29,6 +29,11 @@ type Options struct {
 	OutputPath       string
 	Catalog          string
 	ProjectDir       string
+
+	ShowPackages     bool
+    ShowPackageNames []string
+    ShowPackageSPDX  bool
+    PackagesOnly     bool
 }
 
 // DefaultOptions returns default generator options
@@ -132,6 +137,30 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 
 	// Run through resolver chain (filtering + resolution)
 	result := g.resolverChain.ResolveAll(files)
+    
+	if g.opts.ShowPackages || len(g.opts.ShowPackageNames) > 0 {
+        fmt.Fprintln(os.Stderr, "\n=== DISCOVERED PACKAGES ===")
+
+        if len(result.Packages) == 0 {
+                fmt.Fprintln(os.Stderr, "No packages discovered")
+        } else {
+                for _, pkg := range result.Packages {
+                        fmt.Fprintf(os.Stderr, "- %s %s\n", pkg.Name, pkg.Version)
+                }
+        }
+
+        fmt.Fprintln(os.Stderr, "===========================\n")
+
+        if g.opts.PackagesOnly {
+                return nil
+        }
+}
+  
+
+
+
+
+
 
 	// Resolve packages from network connections
 	networkConns := network.ExtractConnections(attestations)
