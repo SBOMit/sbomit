@@ -68,7 +68,8 @@ func init() {
 
 	generateCmd.Flags().BoolVar(&showPackages, "show-packages", false, "Show all discovered packages")
 	generateCmd.Flags().StringSliceVar(&showPackageNames, "show-package", []string{}, "Show selected package(s), comma-separated")
-	generateCmd.Flags().BoolVar(&showPackageSPDX, "show-package-spdx", false, "Show SPDX-style JSON for selected package(s)")
+	//generateCmd.Flags().BoolVar(&showPackageSPDX, "show-package-spdx", false, "Show SPDX-style JSON for selected package(s)")
+	generateCmd.Flags().BoolVar(&showPackageSPDX, "show-package-details", false, "Show package metadata details for selected package(s)")
 	generateCmd.Flags().BoolVar(&packagesOnly, "packages-only", false, "Only show package discovery output and skip SBOM output")
 }
 
