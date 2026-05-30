@@ -138,25 +138,49 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	// Run through resolver chain (filtering + resolution)
 	result := g.resolverChain.ResolveAll(files)
     
-	if g.opts.ShowPackages || len(g.opts.ShowPackageNames) > 0 {
-        fmt.Fprintln(os.Stderr, "\n=== DISCOVERED PACKAGES ===")
+if g.opts.ShowPackages || len(g.opts.ShowPackageNames) > 0 {
+        if len(g.opts.ShowPackageNames) > 0 {
+                found := 0
+                missing := 0
+                packageMap := make(map[string]resolver.PackageInfo)
 
-        if len(result.Packages) == 0 {
-                fmt.Fprintln(os.Stderr, "No packages discovered")
-        } else {
                 for _, pkg := range result.Packages {
-                        fmt.Fprintf(os.Stderr, "- %s %s\n", pkg.Name, pkg.Version)
+                        packageMap[strings.ToLower(pkg.Name)] = pkg
                 }
-        }
 
-        fmt.Fprintln(os.Stderr, "===========================\n")
+                fmt.Fprintln(os.Stderr, "\n=== PACKAGE DISCOVERY ===")
+
+                for _, name := range g.opts.ShowPackageNames {
+                        normalizedName := strings.ToLower(strings.TrimSpace(name))
+                        if pkg, ok := packageMap[normalizedName]; ok {
+                                fmt.Fprintf(os.Stderr, "✓ %s %s\n", pkg.Name, pkg.Version)
+                                found++
+                        } else {
+                                fmt.Fprintf(os.Stderr, "✗ %s not found\n", name)
+                                missing++
+                        }
+                }
+
+                fmt.Fprintf(os.Stderr, "\nFound: %d\nMissing: %d\n", found, missing)
+                fmt.Fprintln(os.Stderr, "=========================\n")
+        } else {
+                fmt.Fprintln(os.Stderr, "\n=== DISCOVERED PACKAGES ===")
+
+                if len(result.Packages) == 0 {
+                        fmt.Fprintln(os.Stderr, "No packages discovered")
+                } else {
+                        for _, pkg := range result.Packages {
+                                fmt.Fprintf(os.Stderr, "- %s %s\n", pkg.Name, pkg.Version)
+                        }
+                }
+
+                fmt.Fprintln(os.Stderr, "===========================\n")
+        }
 
         if g.opts.PackagesOnly {
                 return nil
         }
 }
-  
-
 
 
 
