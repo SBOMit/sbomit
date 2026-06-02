@@ -18,6 +18,10 @@ var (
 	attestationTypes []string
 	catalog          string
 	projectDir       string
+	showPackages     bool
+	showPackageNames []string
+	showPackageSPDX  bool
+	packagesOnly     bool
 )
 
 var generateCmd = &cobra.Command{
@@ -59,6 +63,12 @@ func init() {
 	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated).")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft, trivy)")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
+
+	generateCmd.Flags().BoolVar(&showPackages, "show-packages", false, "Show all discovered packages")
+	generateCmd.Flags().StringSliceVar(&showPackageNames, "show-package", []string{}, "Show selected package(s), comma-separated")
+	//generateCmd.Flags().BoolVar(&showPackageSPDX, "show-package-spdx", false, "Show SPDX-style JSON for selected package(s)")
+	generateCmd.Flags().BoolVar(&showPackageSPDX, "show-package-details", false, "Show package metadata details for selected package(s)")
+	generateCmd.Flags().BoolVar(&packagesOnly, "packages-only", false, "Only show package discovery output and skip SBOM output")
 }
 
 func runGenerate(attestationFile string) error {
@@ -90,6 +100,11 @@ func runGenerate(attestationFile string) error {
 		OutputPath:       outputPath,
 		Catalog:          catalog,
 		ProjectDir:       projectDir,
+
+		ShowPackages:     showPackages,
+		ShowPackageNames: showPackageNames,
+		ShowPackageSPDX:  showPackageSPDX,
+		PackagesOnly:     packagesOnly,
 	}
 
 	gen := generator.New(opts)
