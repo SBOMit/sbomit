@@ -31,9 +31,9 @@ type Options struct {
 	ProjectDir       string
 
 	ShowPackages     bool
-    ShowPackageNames []string
-    ShowPackageSPDX  bool
-    PackagesOnly     bool
+	ShowPackageNames []string
+	ShowPackageSPDX  bool
+	PackagesOnly     bool
 }
 
 // DefaultOptions returns default generator options
@@ -137,84 +137,73 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 
 	// Run through resolver chain (filtering + resolution)
 	result := g.resolverChain.ResolveAll(files)
-    
-if g.opts.ShowPackages || len(g.opts.ShowPackageNames) > 0 {
-        if len(g.opts.ShowPackageNames) > 0 {
-                found := 0
-                missing := 0
-                packageMap := make(map[string]resolver.PackageInfo)
 
-                for _, pkg := range result.Packages {
-                        packageMap[strings.ToLower(pkg.Name)] = pkg
-                }
+	if g.opts.ShowPackages || len(g.opts.ShowPackageNames) > 0 {
+		if len(g.opts.ShowPackageNames) > 0 {
+			found := 0
+			missing := 0
+			packageMap := make(map[string]resolver.PackageInfo)
 
-                fmt.Fprintln(os.Stderr, "\n=== PACKAGE DISCOVERY ===")
+			for _, pkg := range result.Packages {
+				packageMap[strings.ToLower(pkg.Name)] = pkg
+			}
 
-              
+			fmt.Fprintln(os.Stderr)
 
+			//rahul
+			for _, name := range g.opts.ShowPackageNames {
+				normalizedName := strings.ToLower(strings.TrimSpace(name))
 
-				//rahul
-				for _, name := range g.opts.ShowPackageNames {
-                   normalizedName := strings.ToLower(strings.TrimSpace(name))
+				if pkg, ok := packageMap[normalizedName]; ok {
+					fmt.Fprintf(os.Stderr, "✓ %s %s\n", pkg.Name, pkg.Version)
 
-                    if pkg, ok := packageMap[normalizedName]; ok {
-                fmt.Fprintf(os.Stderr, "✓ %s %s\n", pkg.Name, pkg.Version)
+					if g.opts.ShowPackageSPDX {
+						fmt.Fprintln(os.Stderr, "  Package Details:")
+						fmt.Fprintf(os.Stderr, "    Name: %s\n", pkg.Name)
+						fmt.Fprintf(os.Stderr, "    Version: %s\n", pkg.Version)
+						fmt.Fprintf(os.Stderr, "    Ecosystem: %s\n", pkg.Ecosystem)
+						fmt.Fprintf(os.Stderr, "    PURL: %s\n", pkg.PURL)
 
-                if g.opts.ShowPackageSPDX {
-                        fmt.Fprintln(os.Stderr, "  Package Details:")
-                        fmt.Fprintf(os.Stderr, "    Name: %s\n", pkg.Name)
-                        fmt.Fprintf(os.Stderr, "    Version: %s\n", pkg.Version)
-                        fmt.Fprintf(os.Stderr, "    Ecosystem: %s\n", pkg.Ecosystem)
-                        fmt.Fprintf(os.Stderr, "    PURL: %s\n", pkg.PURL)
+						if len(pkg.Licenses) > 0 {
+							fmt.Fprintf(os.Stderr, "    Licenses: %s\n", strings.Join(pkg.Licenses, ", "))
+						}
 
-                        if len(pkg.Licenses) > 0 {
-                                fmt.Fprintf(os.Stderr, "    Licenses: %s\n", strings.Join(pkg.Licenses, ", "))
-                        }
+						if len(pkg.Hashes) > 0 {
+							fmt.Fprintln(os.Stderr, "    Hashes:")
+							for algo, hash := range pkg.Hashes {
+								fmt.Fprintf(os.Stderr, "      %s: %s\n", algo, hash)
+							}
+						}
+					}
 
-                        if len(pkg.Hashes) > 0 {
-                                fmt.Fprintln(os.Stderr, "    Hashes:")
-                                for algo, hash := range pkg.Hashes {
-                                        fmt.Fprintf(os.Stderr, "      %s: %s\n", algo, hash)
-                                }
-                        }
-                }
+					found++
+				} else {
+					fmt.Fprintf(os.Stderr, "✗ %s not found\n", name)
+					missing++
+				}
+			}
 
-                found++
-        } else {
-                fmt.Fprintf(os.Stderr, "✗ %s not found\n", name)
-                missing++
-        }
-}
+			fmt.Fprintf(os.Stderr, "\nFound: %d\nMissing: %d\n", found, missing)
+			fmt.Fprintln(os.Stderr, "=========================")
+		} else {
+			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, "=== DISCOVERED PACKAGES ===")
 
+			if len(result.Packages) == 0 {
+				fmt.Fprintln(os.Stderr, "No packages discovered")
+			} else {
+				for _, pkg := range result.Packages {
+					fmt.Fprintf(os.Stderr, "- %s %s\n", pkg.Name, pkg.Version)
+				}
+			}
 
+			fmt.Fprintln(os.Stderr, "===========================")
+		}
 
-
-
-
-                fmt.Fprintf(os.Stderr, "\nFound: %d\nMissing: %d\n", found, missing)
-                fmt.Fprintln(os.Stderr, "=========================\n")
-        } else {
-                fmt.Fprintln(os.Stderr, "\n=== DISCOVERED PACKAGES ===")
-
-                if len(result.Packages) == 0 {
-                        fmt.Fprintln(os.Stderr, "No packages discovered")
-                } else {
-                        for _, pkg := range result.Packages {
-                                fmt.Fprintf(os.Stderr, "- %s %s\n", pkg.Name, pkg.Version)
-                        }
-                }
-
-                fmt.Fprintln(os.Stderr, "===========================\n")
-        }
-
-        if g.opts.PackagesOnly {
-                return nil
-        }
-}
-
-
-
-
+		if g.opts.PackagesOnly {
+			return nil
+		}
+	}
 
 	// Resolve packages from network connections
 	networkConns := network.ExtractConnections(attestations)

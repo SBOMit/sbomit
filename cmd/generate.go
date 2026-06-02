@@ -18,12 +18,10 @@ var (
 	attestationTypes []string
 	catalog          string
 	projectDir       string
-    showPackages    bool
-    showPackageNames []string
-    showPackageSPDX bool
-    packagesOnly    bool
-
-
+	showPackages     bool
+	showPackageNames []string
+	showPackageSPDX  bool
+	packagesOnly     bool
 )
 
 var generateCmd = &cobra.Command{
@@ -102,7 +100,6 @@ func runGenerate(attestationFile string) error {
 		OutputPath:       outputPath,
 		Catalog:          catalog,
 		ProjectDir:       projectDir,
-
 
 		ShowPackages:     showPackages,
 		ShowPackageNames: showPackageNames,
