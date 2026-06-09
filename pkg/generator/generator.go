@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ type Options struct {
 	OutputPath       string
 	Catalog          string
 	ProjectDir       string
+	SkipPaths        []string
 }
 
 // DefaultOptions returns default generator options
@@ -41,6 +43,7 @@ func DefaultOptions() *Options {
 		OutputFormat:     "spdx23",
 		Catalog:          "",
 		ProjectDir:       "",
+		SkipPaths:        []string{},
 	}
 }
 
@@ -124,6 +127,10 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	// Convert to resolver.FileInfo format
 	var files []resolver.FileInfo
 	for _, f := range attFiles {
+		if g.shouldSkip(f.Path) {
+			fmt.Fprintf(os.Stderr, "Excluded item: %s\n", f.Path)
+			continue
+		}
 		files = append(files, resolver.FileInfo{
 			Path:   f.Path,
 			Hashes: f.Hashes,
@@ -147,6 +154,17 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	}
 
 	return g.writeOutput(attDoc)
+}
+
+func (g *Generator) shouldSkip(path string) bool {
+	// Check skip paths
+	for _, pattern := range g.opts.SkipPaths {
+		matched, _ := filepath.Match(pattern, path)
+		if matched {
+			return true
+		}
+	}
+	return false
 }
 
 // mergeNetworkPackages merges network-resolved packages into the file-resolved result.
