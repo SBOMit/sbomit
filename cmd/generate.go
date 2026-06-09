@@ -18,8 +18,7 @@ var (
 	attestationTypes []string
 	catalog          string
 	projectDir       string
-	skipBinaries     []string
-	skipDirs         []string
+	skipPaths        []string
 )
 
 var generateCmd = &cobra.Command{
@@ -61,8 +60,7 @@ func init() {
 	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated).")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft, trivy)")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
-	generateCmd.Flags().StringSliceVar(&skipBinaries, "skip-binary", []string{}, "Exclude binaries matching glob pattern")
-	generateCmd.Flags().StringSliceVar(&skipDirs, "skip-dir", []string{}, "Exclude directories by name or glob pattern")
+	generateCmd.Flags().StringSliceVar(&skipPaths, "skip-path", []string{}, "Exclude paths matching glob pattern")
 }
 
 func runGenerate(attestationFile string) error {
@@ -94,8 +92,7 @@ func runGenerate(attestationFile string) error {
 		OutputPath:       outputPath,
 		Catalog:          catalog,
 		ProjectDir:       projectDir,
-		SkipBinaries:     skipBinaries,
-		SkipDirs:         skipDirs,
+		SkipPaths:        skipPaths,
 	}
 
 	gen := generator.New(opts)

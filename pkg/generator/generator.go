@@ -30,8 +30,7 @@ type Options struct {
 	OutputPath       string
 	Catalog          string
 	ProjectDir       string
-	SkipBinaries     []string
-	SkipDirs         []string
+	SkipPaths        []string
 }
 
 // DefaultOptions returns default generator options
@@ -44,8 +43,7 @@ func DefaultOptions() *Options {
 		OutputFormat:     "spdx23",
 		Catalog:          "",
 		ProjectDir:       "",
-		SkipBinaries:     []string{},
-		SkipDirs:         []string{},
+		SkipPaths:        []string{},
 	}
 }
 
@@ -159,30 +157,13 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 }
 
 func (g *Generator) shouldSkip(path string) bool {
-	// Check skip dirs
-	for _, dir := range g.opts.SkipDirs {
-		cleanDir := strings.TrimSuffix(dir, "/")
-		if strings.HasPrefix(path, cleanDir+"/") || path == cleanDir || strings.Contains(path, "/"+cleanDir+"/") {
-			return true
-		}
-		matched, _ := filepath.Match(dir, path)
+	// Check skip paths
+	for _, pattern := range g.opts.SkipPaths {
+		matched, _ := filepath.Match(pattern, path)
 		if matched {
 			return true
 		}
 	}
-
-	// Check skip binaries
-	for _, bin := range g.opts.SkipBinaries {
-		matched, err := filepath.Match(bin, path)
-		if err == nil && matched {
-			return true
-		}
-		matchedBase, err := filepath.Match(bin, filepath.Base(path))
-		if err == nil && matchedBase {
-			return true
-		}
-	}
-
 	return false
 }
 
