@@ -42,10 +42,10 @@ func NewResolverChain() *ResolverChain {
 	return &ResolverChain{
 		resolvers: []Resolver{
 			NewPythonResolver(),
-			// Add more resolvers here as they are implemented:
 			NewGoResolver(),
 			NewRustResolver(),
 			NewJavaScriptResolver(),
+			NewMavenResolver(),
 		},
 		filter: NewFileFilter(),
 	}

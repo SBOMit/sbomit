@@ -48,12 +48,31 @@ func NewFileFilter() *FileFilter {
 			regexp.MustCompile(`/\.vscode/`),
 			regexp.MustCompile(`\.swp$`),
 			regexp.MustCompile(`\.swo$`),
+
+			// Go compiler/linker intermediates in /tmp
+			regexp.MustCompile(`/tmp/go-build`),
+			regexp.MustCompile(`/tmp/go-link-`),
+			regexp.MustCompile(`/tmp/cgo-`),
+			regexp.MustCompile(`/tmp/[^/]+/pkg/linux_amd64/`),
+
+			// pip transient download dirs (packages caught via dist-info already)
+			regexp.MustCompile(`/tmp/pip-unpack-`),
+			regexp.MustCompile(`/tmp/pip-req-`),
+
+			// Rust compiled build output (not registry/source)
+			regexp.MustCompile(`/target/release/`),
+			regexp.MustCompile(`/target/debug/`),
+
+			// Go telemetry
+			regexp.MustCompile(`/\.config/go/telemetry/`),
 		},
 		excludePrefixes: []string{
 			"/proc/",
 			"/sys/",
 			"/dev/",
 			"/run/",
+			"/usr/local/go/",  // Go toolchain stdlib source — not project deps
+			"/usr/local/go1.", // versioned Go toolchain e.g. /usr/local/go1.24.4/
 		},
 		excludeSuffixes: []string{
 			".pyc",
