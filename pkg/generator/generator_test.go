@@ -41,7 +41,7 @@ func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
 		ProjectDir:       "/does/not/exist",
 	})
 
-	if err := gen.GenerateFromAttestations(nil); err != nil {
+	if _, err := gen.GenerateFromAttestations(nil); err != nil {
 		t.Fatalf("generate with catalog file: %v", err)
 	}
 

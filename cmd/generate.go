@@ -20,6 +20,7 @@ var (
 	catalogFile      string
 	projectDir       string
 	skipPaths        []string
+	summaryFlag      bool
 )
 
 var generateCmd = &cobra.Command{
@@ -63,6 +64,7 @@ func init() {
 	generateCmd.Flags().StringVar(&catalogFile, "catalog-file", "", "Existing SBOM catalog file to merge with attestation-derived packages")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
 	generateCmd.Flags().StringSliceVar(&skipPaths, "skip-path", []string{}, "Exclude paths matching glob pattern")
+	generateCmd.Flags().BoolVar(&summaryFlag, "summary", false, "Also print per-package details under each ecosystem (default: only ecosystem counts are shown)")
 }
 
 func runGenerate(attestationFile string) error {
@@ -107,9 +109,12 @@ func runGenerate(attestationFile string) error {
 	}
 
 	gen := generator.New(opts)
-	if err := gen.GenerateFromFile(attestationFile); err != nil {
+	doc, err := gen.GenerateFromFile(attestationFile)
+	if err != nil {
 		return fmt.Errorf("failed to generate SBOM: %w", err)
 	}
+
+	generator.WriteSummary(os.Stderr, generator.GenerateSummary(doc), summaryFlag)
 
 	if outputPath != "" {
 		fmt.Fprintf(os.Stderr, "SBOM written to %s\n", outputPath)

@@ -66,10 +66,10 @@ func New(opts *Options) *Generator {
 	}
 }
 
-func (g *Generator) GenerateFromFile(attestationPath string) error {
+func (g *Generator) GenerateFromFile(attestationPath string) (*sbom.Document, error) {
 	attestations, err := attestation.ParseWitnessFile(attestationPath, g.opts.AttestationTypes)
 	if err != nil {
-		return fmt.Errorf("failed to parse attestation file: %w", err)
+		return nil, fmt.Errorf("failed to parse attestation file: %w", err)
 	}
 	g.printParsedAttestationSummary(attestations)
 	return g.GenerateFromAttestations(attestations)
@@ -98,7 +98,7 @@ func (g *Generator) printParsedAttestationSummary(attestations []attestation.Typ
 	fmt.Fprintf(os.Stderr, "Parsed attestations (%d total): %s\n", len(attestations), strings.Join(parts, ", "))
 }
 
-func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAttestation) error {
+func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAttestation) (*sbom.Document, error) {
 	var baseDoc *sbom.Document
 	var err error
 
@@ -106,7 +106,7 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	if projectDir == "" {
 		projectDir, err = os.Getwd()
 		if err != nil {
-			return fmt.Errorf("failed to determine project directory: %w", err)
+			return nil, fmt.Errorf("failed to determine project directory: %w", err)
 		}
 	}
 
@@ -114,18 +114,18 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	case "syft":
 		baseDoc, err = g.runSyft(projectDir)
 		if err != nil {
-			return fmt.Errorf("failed to run syft: %w", err)
+			return nil, fmt.Errorf("failed to run syft: %w", err)
 		}
 	case "trivy":
 		baseDoc, err = g.runTrivy(projectDir)
 		if err != nil {
-			return fmt.Errorf("failed to run trivy: %w", err)
+			return nil, fmt.Errorf("failed to run trivy: %w", err)
 		}
 	default:
 		if strings.TrimSpace(g.opts.CatalogFile) != "" {
 			baseDoc, err = g.readCatalogFile(g.opts.CatalogFile)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
@@ -158,10 +158,12 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	if baseDoc != nil {
 		g.applyMetadata(baseDoc)
 		g.mergePreferAttestation(baseDoc, attDoc)
-		return g.writeOutput(baseDoc)
+		err = g.writeOutput(baseDoc)
+		return baseDoc, err
 	}
 
-	return g.writeOutput(attDoc)
+	err = g.writeOutput(attDoc)
+	return attDoc, err
 }
 
 func (g *Generator) shouldSkip(path string) bool {
