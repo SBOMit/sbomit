@@ -29,6 +29,7 @@ type Options struct {
 	OutputFormat     string
 	OutputPath       string
 	Catalog          string
+	CatalogFile      string
 	ProjectDir       string
 	SkipPaths        []string
 }
@@ -42,6 +43,7 @@ func DefaultOptions() *Options {
 		AttestationTypes: []string{"material", "command-run", "product", "network-trace"},
 		OutputFormat:     "spdx23",
 		Catalog:          "",
+		CatalogFile:      "",
 		ProjectDir:       "",
 		SkipPaths:        []string{},
 	}
@@ -120,6 +122,12 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 			return fmt.Errorf("failed to run trivy: %w", err)
 		}
 	default:
+		if strings.TrimSpace(g.opts.CatalogFile) != "" {
+			baseDoc, err = g.readCatalogFile(g.opts.CatalogFile)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	attFiles := attestation.ExtractFilesFromAttestations(attestations, g.opts.AttestationTypes)
@@ -367,6 +375,14 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 	mergeList.Edges = attDoc.NodeList.Edges
 	mergeList.RootElements = attDoc.NodeList.RootElements
 	baseDoc.NodeList.Add(mergeList)
+}
+
+func (g *Generator) readCatalogFile(path string) (*sbom.Document, error) {
+	doc, err := reader.New().ParseFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read catalog file %s: %w", path, err)
+	}
+	return doc, nil
 }
 
 func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {

@@ -17,6 +17,7 @@ var (
 	authors          []string
 	attestationTypes []string
 	catalog          string
+	catalogFile      string
 	projectDir       string
 	skipPaths        []string
 )
@@ -59,6 +60,7 @@ func init() {
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
 	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product", "network-trace"}, "Attestation types to parse (comma-separated).")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft, trivy)")
+	generateCmd.Flags().StringVar(&catalogFile, "catalog-file", "", "Existing SBOM catalog file to merge with attestation-derived packages")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
 	generateCmd.Flags().StringSliceVar(&skipPaths, "skip-path", []string{}, "Exclude paths matching glob pattern")
 }
@@ -82,6 +84,14 @@ func runGenerate(attestationFile string) error {
 	if !validCatalogs[strings.ToLower(catalog)] {
 		return fmt.Errorf("invalid catalog: %s (supported: syft, trivy)", catalog)
 	}
+	if catalog != "" && catalogFile != "" {
+		return fmt.Errorf("--catalog and --catalog-file cannot be used together")
+	}
+	if catalogFile != "" {
+		if _, err := os.Stat(catalogFile); os.IsNotExist(err) {
+			return fmt.Errorf("catalog file not found: %s", catalogFile)
+		}
+	}
 
 	opts := &generator.Options{
 		DocumentName:     documentName,
@@ -91,6 +101,7 @@ func runGenerate(attestationFile string) error {
 		OutputFormat:     outputFormat,
 		OutputPath:       outputPath,
 		Catalog:          catalog,
+		CatalogFile:      catalogFile,
 		ProjectDir:       projectDir,
 		SkipPaths:        skipPaths,
 	}
