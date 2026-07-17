@@ -1,3 +1,35 @@
+# OS files
 .DS_Store
-sbomit
-new_sbom_file.sbom
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build outputs
+/sbomit
+/bin/
+/dist/
+*.test
+*.out
+
+# Generated SBOMs
+/sbom.json
+/*.sbom
+/*.spdx.json
+/*.cdx.json
+
+# Local Go caches
+/.gocache/
+/.gomodcache/
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+tmp/
+temp/
