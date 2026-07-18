@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"net/url"
 	"path"
 	"regexp"
 	"strings"
@@ -14,7 +15,7 @@ type GoResolver struct {
 func NewGoResolver() *GoResolver {
 	return &GoResolver{
 		moduleDirRe:   regexp.MustCompile(`pkg/mod/([^@]+)@([^/]+)/`),
-		moduleCacheRe: regexp.MustCompile(`pkg/mod/cache/download/(.+)/@v/([^/]+)\.(mod|zip|info)`),
+		moduleCacheRe: regexp.MustCompile(`pkg/mod/cache/download/(.+)/@v/([^/]+)\.(mod|zip|info|ziphash)`),
 	}
 }
 
@@ -23,7 +24,8 @@ func (r *GoResolver) Name() string {
 }
 
 func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
-	seen := make(map[string]struct{})
+	byKey := make(map[string]*PackageInfo)
+	order := []string{}
 
 	for _, f := range files {
 		np := path.Clean(f.Path)
@@ -41,21 +43,26 @@ func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainin
 
 		module = DecodeGoModulePath(module)
 		key := module + "@" + version
-		if _, ok := seen[key]; ok {
-			continue
+		pkg, ok := byKey[key]
+		if !ok {
+			pkg = &PackageInfo{
+				Name:      module,
+				Version:   version,
+				Ecosystem: "golang",
+				PURL:      "pkg:golang/" + module + "@" + encodeGoPURLVersion(version),
+				FoundBy:   "attestation:go",
+			}
+			byKey[key] = pkg
+			order = append(order, key)
 		}
-		seen[key] = struct{}{}
 
-		purl := "pkg:golang/" + module + "@" + version
-		pkg := PackageInfo{
-			Name:      module,
-			Version:   version,
-			Ecosystem: "golang",
-			PURL:      purl,
-			Hashes:    f.Hashes,
-			FoundBy:   "attestation:go",
+		if !r.isModuleCachePath(np) && len(pkg.Hashes) == 0 {
+			pkg.Hashes = f.Hashes
 		}
-		packages = append(packages, pkg)
+	}
+
+	for _, key := range order {
+		packages = append(packages, *byKey[key])
 	}
 
 	return packages, remainingFiles
@@ -110,14 +117,22 @@ func (r *GoResolver) isGoPath(p string) bool {
 	return strings.Contains(p, "/pkg/mod/")
 }
 
+func (r *GoResolver) isModuleCachePath(p string) bool {
+	return strings.Contains(p, "/pkg/mod/cache/download/")
+}
+
 func (r *GoResolver) extractModuleVersion(p string) (string, string, bool) {
-	if matches := r.moduleDirRe.FindStringSubmatch(p); len(matches) == 3 {
-		return matches[1], matches[2], true
-	}
 	if matches := r.moduleCacheRe.FindStringSubmatch(p); len(matches) == 4 {
 		return matches[1], matches[2], true
 	}
+	if matches := r.moduleDirRe.FindStringSubmatch(p); len(matches) == 3 {
+		return matches[1], matches[2], true
+	}
 	return "", "", false
+}
+
+func encodeGoPURLVersion(version string) string {
+	return strings.ReplaceAll(url.PathEscape(version), "+", "%2B")
 }
 
 func goModulePathVariants(module string) []string {
