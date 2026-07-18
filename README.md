@@ -52,6 +52,14 @@ sbomit generate attestation.json --catalog syft --project-dir /path/to/project
 
 ## Development
 
+Common development commands are available through `make`:
+
+```bash
+make test
+make build
+make fmt
+```
+
 ### Attestation Extractors
 
 Modular extractors for different attestation types:
@@ -81,7 +89,8 @@ Run Resolvers → Filter Package Files → Generate SBOM
 ## Testing
 
 ```bash
-go run . generate test/sample-attestation.json
+make test
+make generate-sample
 ``` 
    
 ## License  
