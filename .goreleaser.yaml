@@ -1,0 +1,42 @@
+version: 2
+
+project_name: sbomit
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: sbomit
+    main: .
+    binary: sbomit
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: sbomit
+    ids:
+      - sbomit
+    formats:
+      - tar.gz
+    files:
+      - README.md
+      - LICENSE.md
+      - SECURITY.md
+
+checksum:
+  name_template: "checksums.txt"
+
+release:
+  mode: keep-existing
+  prerelease: auto
