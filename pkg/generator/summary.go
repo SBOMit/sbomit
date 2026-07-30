@@ -15,6 +15,12 @@ type Summary struct {
 	PackagesByEcosystem map[string][]string
 }
 
+type EnrichmentSummary struct {
+	BasePackages     int
+	AddedPackages    int
+	EnrichedPackages int
+}
+
 func GenerateSummary(doc *sbom.Document) Summary {
 	summary := Summary{
 		PackagesByEcosystem: make(map[string][]string),
@@ -92,4 +98,12 @@ func WriteSummary(w io.Writer, summary Summary, detailed bool) {
 			fmt.Fprintf(w, "    - %s\n", item)
 		}
 	}
+}
+
+func WriteEnrichmentSummary(w io.Writer, summary EnrichmentSummary) {
+	fmt.Fprintln(w, "SBOMit Enrichment Summary")
+	fmt.Fprintf(w, "Base Packages: %d\n", summary.BasePackages)
+	fmt.Fprintf(w, "Added by Attestation: %d\n", summary.AddedPackages)
+	fmt.Fprintf(w, "Enriched Packages: %d\n", summary.EnrichedPackages)
+	fmt.Fprintln(w)
 }

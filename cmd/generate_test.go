@@ -6,6 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/protobom/protobom/pkg/formats"
+	"github.com/protobom/protobom/pkg/sbom"
+	"github.com/protobom/protobom/pkg/writer"
 )
 
 func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
@@ -19,6 +23,7 @@ func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
 	authors = nil
 	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
 	catalog = ""
+	catalogFile = ""
 	projectDir = ""
 	skipPaths = nil
 	summaryFlag = false
@@ -43,6 +48,9 @@ func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
 	if strings.Contains(stderr, "    - pkg:") {
 		t.Fatalf("did not expect detailed package listing without --summary: %s", stderr)
 	}
+	if strings.Contains(stderr, "SBOMit Enrichment Summary") {
+		t.Fatalf("did not expect enrichment summary without a base catalog, got: %s", stderr)
+	}
 }
 
 func TestRunGenerateDetailedSummaryToStderrWithFileOutput(t *testing.T) {
@@ -59,6 +67,7 @@ func TestRunGenerateDetailedSummaryToStderrWithFileOutput(t *testing.T) {
 	authors = nil
 	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
 	catalog = ""
+	catalogFile = ""
 	projectDir = ""
 	skipPaths = nil
 	summaryFlag = true
@@ -90,6 +99,46 @@ func TestRunGenerateDetailedSummaryToStderrWithFileOutput(t *testing.T) {
 	}
 }
 
+func TestRunGeneratePrintsEnrichmentSummaryWithCatalogFile(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	tmpDir := t.TempDir()
+	catalogPath := filepath.Join(tmpDir, "catalog.spdx.json")
+	target := filepath.Join(tmpDir, "sbom.json")
+	writeTestCatalog(t, catalogPath)
+
+	outputPath = target
+	outputFormat = "spdx23"
+	documentName = "sbomit-sbom"
+	documentVersion = "0.0.1"
+	authors = nil
+	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	catalog = ""
+	catalogFile = catalogPath
+	projectDir = ""
+	skipPaths = nil
+	summaryFlag = false
+
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	if err != nil {
+		t.Fatalf("runGenerate returned error: %v", err)
+	}
+
+	if stdout != "" {
+		t.Fatalf("expected no stdout when writing SBOM to file, got: %s", stdout)
+	}
+	if !strings.Contains(stderr, "SBOMit Enrichment Summary") {
+		t.Fatalf("expected enrichment summary on stderr, got: %s", stderr)
+	}
+	if !strings.Contains(stderr, "Base Packages: 1") {
+		t.Fatalf("expected base package count in enrichment summary, got: %s", stderr)
+	}
+	if !strings.Contains(stderr, "SBOM Summary") {
+		t.Fatalf("expected existing SBOM summary to remain on stderr, got: %s", stderr)
+	}
+}
+
 func snapshotGenerateGlobals() func() {
 	prevOutputPath := outputPath
 	prevOutputFormat := outputFormat
@@ -98,6 +147,7 @@ func snapshotGenerateGlobals() func() {
 	prevAuthors := append([]string(nil), authors...)
 	prevAttestationTypes := append([]string(nil), attestationTypes...)
 	prevCatalog := catalog
+	prevCatalogFile := catalogFile
 	prevProjectDir := projectDir
 	prevSkipPaths := append([]string(nil), skipPaths...)
 	prevSummaryFlag := summaryFlag
@@ -110,6 +160,7 @@ func snapshotGenerateGlobals() func() {
 		authors = prevAuthors
 		attestationTypes = prevAttestationTypes
 		catalog = prevCatalog
+		catalogFile = prevCatalogFile
 		projectDir = prevProjectDir
 		skipPaths = prevSkipPaths
 		summaryFlag = prevSummaryFlag
@@ -181,4 +232,26 @@ func readAllPipe(f *os.File) ([]byte, error) {
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(f)
 	return buf.Bytes(), err
+}
+
+func writeTestCatalog(t *testing.T, path string) {
+	t.Helper()
+
+	catalogDoc := sbom.NewDocument()
+	catalogDoc.Metadata.Id = "urn:uuid:test-catalog"
+	catalogDoc.Metadata.Name = "catalog"
+	catalogDoc.NodeList.AddRootNode(&sbom.Node{Id: "catalog-root"})
+	catalogDoc.NodeList.AddNode(&sbom.Node{
+		Id:      "pkg:generic/catalog-package@1.0.0",
+		Type:    sbom.Node_PACKAGE,
+		Name:    "catalog-package",
+		Version: "1.0.0",
+		Identifiers: map[int32]string{
+			int32(sbom.SoftwareIdentifierType_PURL): "pkg:generic/catalog-package@1.0.0",
+		},
+	})
+
+	if err := writer.New().WriteFileWithOptions(catalogDoc, path, &writer.Options{Format: formats.SPDX23JSON}); err != nil {
+		t.Fatalf("write catalog SBOM: %v", err)
+	}
 }
