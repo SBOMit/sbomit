@@ -65,6 +65,8 @@ func (c *ExtractorChain) ExtractAll(attestations []TypedAttestation, typeFilter 
 		extracted := extractor.Extract(att.Data)
 
 		for _, f := range extracted {
+			ValidatePath(f.Path)
+
 			if _, seen := seenPaths[f.Path]; !seen {
 				seenPaths[f.Path] = struct{}{}
 				files = append(files, f)
