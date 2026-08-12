@@ -3,6 +3,7 @@ module github.com/sbomit/sbomit
 go 1.22.0
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/protobom/protobom v0.4.2
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/protobuf v1.34.1
@@ -14,7 +15,6 @@ require (
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spdx/tools-golang v0.5.4 // indirect

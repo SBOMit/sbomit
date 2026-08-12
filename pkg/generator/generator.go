@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/protobom/protobom/pkg/formats"
 	"github.com/protobom/protobom/pkg/reader"
 	"github.com/protobom/protobom/pkg/sbom"
@@ -562,12 +563,5 @@ func sanitizeID(s string) string {
 }
 
 func generateUUID() string {
-	now := time.Now().UnixNano()
-	return fmt.Sprintf("%x-%x-%x-%x-%x",
-		now&0xFFFFFFFF,
-		(now>>32)&0xFFFF,
-		(now>>48)&0xFFFF,
-		(now>>16)&0xFFFF,
-		now&0xFFFFFFFFFFFF,
-	)
+	return uuid.NewString()
 }
