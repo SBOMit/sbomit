@@ -21,6 +21,28 @@ type EnrichmentSummary struct {
 	EnrichedPackages int
 }
 
+// rootElementSet returns a set of root-element IDs for a document so that
+// synthetic top-level nodes (e.g. the application node added by sbomit) can be
+// excluded from package counts and ecosystem breakdowns.
+func rootElementSet(doc *sbom.Document) map[string]bool {
+	roots := map[string]bool{}
+	if doc == nil || doc.NodeList == nil {
+		return roots
+	}
+	for _, id := range doc.NodeList.RootElements {
+		roots[id] = true
+	}
+	return roots
+}
+
+// isNonRootPackage reports whether node is a real package node that should be
+// counted — i.e. it is a PACKAGE node whose ID does not appear in roots.
+// This single predicate is the one canonical check used by GenerateSummary,
+// countPackageNodes, and shouldTrackEnrichment.
+func isNonRootPackage(node *sbom.Node, roots map[string]bool) bool {
+	return node != nil && node.Type == sbom.Node_PACKAGE && !roots[node.Id]
+}
+
 func GenerateSummary(doc *sbom.Document) Summary {
 	summary := Summary{
 		PackagesByEcosystem: make(map[string][]string),
@@ -30,13 +52,10 @@ func GenerateSummary(doc *sbom.Document) Summary {
 		return summary
 	}
 
-	rootElements := make(map[string]bool, len(doc.NodeList.RootElements))
-	for _, id := range doc.NodeList.RootElements {
-		rootElements[id] = true
-	}
+	roots := rootElementSet(doc)
 
 	for _, node := range doc.NodeList.Nodes {
-		if rootElements[node.Id] {
+		if roots[node.Id] {
 			continue
 		}
 		switch node.Type {

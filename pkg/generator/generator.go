@@ -368,7 +368,7 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 		}
 
 		if targetNode != nil {
-			if shouldTrackEnrichment(attNode, attRoots) &&
+			if isNonRootPackage(attNode, attRoots) &&
 				originalBaseNodes[targetNode] &&
 				!enrichedBaseNodes[targetNode] &&
 				hasPackageEnrichment(targetNode, attNode) {
@@ -388,7 +388,7 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 			if key := normalizedPURLKey(attPurl); key != "" {
 				baseIndexByPURL[key] = attNode
 			}
-			if shouldTrackEnrichment(attNode, attRoots) {
+			if isNonRootPackage(attNode, attRoots) {
 				summary.AddedPackages++
 			}
 		}
@@ -403,33 +403,17 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 	return summary
 }
 
-func rootElementSet(doc *sbom.Document) map[string]bool {
-	roots := map[string]bool{}
-	if doc == nil || doc.NodeList == nil {
-		return roots
-	}
-	for _, id := range doc.NodeList.RootElements {
-		roots[id] = true
-	}
-	return roots
-}
-
 func countPackageNodes(doc *sbom.Document, roots map[string]bool) int {
 	if doc == nil || doc.NodeList == nil {
 		return 0
 	}
-
 	total := 0
 	for _, node := range doc.NodeList.Nodes {
-		if node != nil && node.Type == sbom.Node_PACKAGE && !roots[node.Id] {
+		if isNonRootPackage(node, roots) {
 			total++
 		}
 	}
 	return total
-}
-
-func shouldTrackEnrichment(node *sbom.Node, roots map[string]bool) bool {
-	return node != nil && node.Type == sbom.Node_PACKAGE && !roots[node.Id]
 }
 
 func normalizedPURLKey(purl string) string {
