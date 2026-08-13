@@ -397,7 +397,10 @@ func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create temp file: %w", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func(){ 
+		_ = tmpFile.Close() 
+		_ = os.Remove(tmpFile.Name()) 
+	}()
 
 	var stderr bytes.Buffer
 	cmd := exec.Command("syft", projectDir, "-o", "spdx-json")
@@ -429,7 +432,17 @@ func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create temp file: %w", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func(){ 
+		_ = tmpFile.Close() 
+		_ = os.Remove(tmpFile.Name()) 
+	}()
+
+	if err := tmpFile.Close(); err != nil {
+        return nil, fmt.Errorf(
+            "close temp file before running trivy: %w",
+            err,
+        )
+    }
 
 	var stderr bytes.Buffer
 	// Tell Trivy to scan the directory and output an SPDX JSON file
