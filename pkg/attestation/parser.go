@@ -76,12 +76,20 @@ func decodeEnvelopePayload(rawPayload json.RawMessage) ([]byte, error) {
 	return nil, fmt.Errorf("unsupported payload format")
 }
 
+var supportedEncodings = []*base64.Encoding{
+	base64.RawURLEncoding,
+	base64.URLEncoding,
+	base64.StdEncoding,
+	base64.RawStdEncoding,
+}
+
 func decodeBase64Any(s string) ([]byte, error) {
-	decoded, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return nil, fmt.Errorf("base64 decoding failed: %w", err)
+	for _, enc := range supportedEncodings {
+		if b, err := enc.DecodeString(s); err == nil {
+			return b, nil
+		}
 	}
-	return decoded, nil
+	return nil, fmt.Errorf("base64 decoding failed: not a recognized base64 variant")
 }
 
 func extractAttestations(predicate map[string]interface{}, typeFilter []string) ([]TypedAttestation, error) {
