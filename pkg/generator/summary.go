@@ -37,8 +37,6 @@ func rootElementSet(doc *sbom.Document) map[string]bool {
 
 // isNonRootPackage reports whether node is a real package node that should be
 // counted — i.e. it is a PACKAGE node whose ID does not appear in roots.
-// This single predicate is the one canonical check used by GenerateSummary,
-// countPackageNodes, and shouldTrackEnrichment.
 func isNonRootPackage(node *sbom.Node, roots map[string]bool) bool {
 	return node != nil && node.Type == sbom.Node_PACKAGE && !roots[node.Id]
 }
