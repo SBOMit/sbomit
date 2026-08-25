@@ -158,7 +158,8 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 
 	if baseDoc != nil {
 		g.applyMetadata(baseDoc)
-		g.mergePreferAttestation(baseDoc, attDoc)
+		enrichment := g.mergePreferAttestation(baseDoc, attDoc)
+		WriteEnrichmentSummary(os.Stderr, enrichment)
 		err = g.writeOutput(baseDoc)
 		return baseDoc, err
 	}
@@ -316,24 +317,31 @@ func (g *Generator) applyMetadata(doc *sbom.Document) {
 	})
 }
 
-func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.Document) {
+func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.Document) EnrichmentSummary {
+	summary := EnrichmentSummary{}
 	if baseDoc == nil || baseDoc.NodeList == nil || attDoc == nil || attDoc.NodeList == nil {
-		return
+		return summary
 	}
 
-	// Index syft nodes by both ID and PURL for deduplication
+	baseRoots := rootElementSet(baseDoc)
+	attRoots := rootElementSet(attDoc)
+	summary.BasePackages = countPackageNodes(baseDoc, baseRoots)
+
+	// Index catalog nodes by both ID and normalized PURL for deduplication.
 	baseIndexByID := map[string]*sbom.Node{}
 	baseIndexByPURL := map[string]*sbom.Node{}
+	originalBaseNodes := map[*sbom.Node]bool{}
+	enrichedBaseNodes := map[*sbom.Node]bool{}
 
 	for _, node := range baseDoc.NodeList.Nodes {
 		if node == nil || node.Id == "" {
 			continue
 		}
 		baseIndexByID[node.Id] = node
+		originalBaseNodes[node] = true
 
-		purl := string(node.Purl())
-		if purl != "" {
-			baseIndexByPURL[strings.ToLower(purl)] = node
+		if key := normalizedPURLKey(string(node.Purl())); key != "" {
+			baseIndexByPURL[key] = node
 		}
 	}
 
@@ -347,8 +355,8 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 
 		// First try to match by PURL (this handles different ID schemes)
 		attPurl := string(attNode.Purl())
-		if attPurl != "" {
-			if baseNode, ok := baseIndexByPURL[strings.ToLower(attPurl)]; ok {
+		if attPurlKey := normalizedPURLKey(attPurl); attPurlKey != "" {
+			if baseNode, ok := baseIndexByPURL[attPurlKey]; ok {
 				targetNode = baseNode
 			}
 		}
@@ -361,14 +369,28 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 		}
 
 		if targetNode != nil {
-			// Merge: prefer attestation values over syft
+			if isNonRootPackage(attNode, attRoots) &&
+				originalBaseNodes[targetNode] &&
+				!enrichedBaseNodes[targetNode] &&
+				hasPackageEnrichment(targetNode, attNode) {
+				summary.EnrichedPackages++
+				enrichedBaseNodes[targetNode] = true
+			}
+
+			// Merge: prefer attestation values over cataloger values.
 			targetNode.Update(attNode)
+			if key := normalizedPURLKey(string(targetNode.Purl())); key != "" {
+				baseIndexByPURL[key] = targetNode
+			}
 		} else {
 			// New node from attestation
 			baseDoc.NodeList.AddNode(attNode)
 			baseIndexByID[attNode.Id] = attNode
-			if attPurl != "" {
-				baseIndexByPURL[strings.ToLower(attPurl)] = attNode
+			if key := normalizedPURLKey(attPurl); key != "" {
+				baseIndexByPURL[key] = attNode
+			}
+			if isNonRootPackage(attNode, attRoots) {
+				summary.AddedPackages++
 			}
 		}
 	}
@@ -378,6 +400,46 @@ func (g *Generator) mergePreferAttestation(baseDoc *sbom.Document, attDoc *sbom.
 	mergeList.Edges = attDoc.NodeList.Edges
 	mergeList.RootElements = attDoc.NodeList.RootElements
 	baseDoc.NodeList.Add(mergeList)
+
+	return summary
+}
+
+func countPackageNodes(doc *sbom.Document, roots map[string]bool) int {
+	if doc == nil || doc.NodeList == nil {
+		return 0
+	}
+	total := 0
+	for _, node := range doc.NodeList.Nodes {
+		if isNonRootPackage(node, roots) {
+			total++
+		}
+	}
+	return total
+}
+
+func normalizedPURLKey(purl string) string {
+	if purl == "" {
+		return ""
+	}
+	base, _, _ := strings.Cut(purl, "?")
+	return strings.ToLower(base)
+}
+
+func hasPackageEnrichment(baseNode, attNode *sbom.Node) bool {
+	for algo, hash := range attNode.Hashes {
+		if baseHash, ok := baseNode.Hashes[algo]; !ok || baseHash != hash {
+			return true
+		}
+	}
+
+	for idType, identifier := range attNode.Identifiers {
+		baseIdentifier, ok := baseNode.Identifiers[idType]
+		if !ok || baseIdentifier != identifier {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (g *Generator) readCatalogFile(path string) (*sbom.Document, error) {
