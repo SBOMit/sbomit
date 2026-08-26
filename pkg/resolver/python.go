@@ -53,7 +53,6 @@ func (r *PythonResolver) Resolve(files []FileInfo) (packages []PackageInfo, rema
 				Version:   version,
 				Ecosystem: "pypi",
 				PURL:      purl,
-				Hashes:    f.Hashes,
 				FoundBy:   "attestation:python",
 			}
 			packages = append(packages, pkg)

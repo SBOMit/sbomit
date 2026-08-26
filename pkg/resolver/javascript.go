@@ -50,7 +50,6 @@ func (r *JavaScriptResolver) Resolve(files []FileInfo) (packages []PackageInfo, 
 			Version:   version,
 			Ecosystem: "npm",
 			PURL:      purl,
-			Hashes:    f.Hashes,
 			FoundBy:   "attestation:javascript",
 		}
 		packages = append(packages, pkg)
