@@ -7,12 +7,14 @@ import (
 )
 
 type JavaScriptResolver struct {
-	pnpmPathRe *regexp.Regexp
+	pnpmPathRe    *regexp.Regexp
+	nodeModulesRe *regexp.Regexp
 }
 
 func NewJavaScriptResolver() *JavaScriptResolver {
 	return &JavaScriptResolver{
-		pnpmPathRe: regexp.MustCompile(`node_modules/\.pnpm/([^/]+)/node_modules/(@[^/]+/[^/]+|[^/]+)(?:/|$)`),
+		pnpmPathRe:    regexp.MustCompile(`node_modules/\.pnpm/([^/]+)/node_modules/(@[^/]+/[^/]+|[^/]+)(?:/|$)`),
+		nodeModulesRe: regexp.MustCompile(`(?:^|/)node_modules/(@[^/]+/[^/]+|[^/]+)(?:/|$)`),
 	}
 }
 
@@ -33,6 +35,9 @@ func (r *JavaScriptResolver) Resolve(files []FileInfo) (packages []PackageInfo, 
 
 		name, version, ok := r.extractPnpmPackage(np)
 		if !ok {
+			name, version, ok = r.extractNodeModulesPackage(np)
+		}
+		if !ok {
 			remainingFiles = append(remainingFiles, f)
 			continue
 		}
@@ -44,7 +49,7 @@ func (r *JavaScriptResolver) Resolve(files []FileInfo) (packages []PackageInfo, 
 		}
 		seen[key] = struct{}{}
 
-		purl := "pkg:npm/" + name + "@" + version
+		purl := npmPURL(name, version)
 		pkg := PackageInfo{
 			Name:      name,
 			Version:   version,
@@ -85,13 +90,17 @@ func (f *jsPackageFilter) Matches(p string) bool {
 	np := path.Clean(p)
 	npLower := strings.ToLower(np)
 
-	if !strings.Contains(npLower, "/node_modules/.pnpm/") {
+	name := strings.ToLower(f.packageName)
+	if name == "" {
 		return false
 	}
 
-	name := strings.ToLower(f.packageName)
+	if nodeModulesPathContainsPackage(npLower, name) {
+		return true
+	}
+
 	ver := strings.ToLower(f.version)
-	if name == "" || ver == "" {
+	if ver == "" || !strings.Contains(npLower, "/node_modules/.pnpm/") {
 		return false
 	}
 
@@ -101,7 +110,7 @@ func (f *jsPackageFilter) Matches(p string) bool {
 	}
 
 	if strings.Contains(npLower, "/node_modules/.pnpm/"+pnpmName+"@"+ver) &&
-		strings.Contains(npLower, "/node_modules/"+name+"/") {
+		nodeModulesPathContainsPackage(npLower, name) {
 		return true
 	}
 
@@ -128,6 +137,20 @@ func (r *JavaScriptResolver) extractPnpmPackage(p string) (string, string, bool)
 	return name, version, true
 }
 
+func (r *JavaScriptResolver) extractNodeModulesPackage(p string) (string, string, bool) {
+	matches := r.nodeModulesRe.FindStringSubmatch(p)
+	if len(matches) != 2 {
+		return "", "", false
+	}
+
+	name := strings.TrimSpace(matches[1])
+	if name == "" || name == ".pnpm" {
+		return "", "", false
+	}
+
+	return name, "", true
+}
+
 func extractPnpmVersion(segment string) string {
 	segment = strings.TrimSpace(segment)
 	if segment == "" {
@@ -144,6 +167,18 @@ func extractPnpmVersion(segment string) string {
 	}
 
 	return segment[lastAt+1:]
+}
+
+func npmPURL(name, version string) string {
+	purl := "pkg:npm/" + name
+	if version != "" {
+		purl += "@" + version
+	}
+	return purl
+}
+
+func nodeModulesPathContainsPackage(p, packageName string) bool {
+	return strings.Contains(p, "node_modules/"+packageName+"/")
 }
 
 // NormalizeNpmPackageName lowercases and trims an npm package name.
