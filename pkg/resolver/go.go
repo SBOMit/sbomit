@@ -43,21 +43,15 @@ func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainin
 
 		module = DecodeGoModulePath(module)
 		key := module + "@" + version
-		pkg, ok := byKey[key]
-		if !ok {
-			pkg = &PackageInfo{
+		if _, ok := byKey[key]; !ok {
+			byKey[key] = &PackageInfo{
 				Name:      module,
 				Version:   version,
 				Ecosystem: "golang",
 				PURL:      "pkg:golang/" + module + "@" + encodeGoPURLVersion(version),
 				FoundBy:   "attestation:go",
 			}
-			byKey[key] = pkg
 			order = append(order, key)
-		}
-
-		if !r.isModuleCachePath(np) && len(pkg.Hashes) == 0 {
-			pkg.Hashes = f.Hashes
 		}
 	}
 
@@ -115,10 +109,6 @@ func (f *goPackageFilter) Matches(p string) bool {
 
 func (r *GoResolver) isGoPath(p string) bool {
 	return strings.Contains(p, "/pkg/mod/")
-}
-
-func (r *GoResolver) isModuleCachePath(p string) bool {
-	return strings.Contains(p, "/pkg/mod/cache/download/")
 }
 
 func (r *GoResolver) extractModuleVersion(p string) (string, string, bool) {
