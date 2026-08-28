@@ -35,6 +35,17 @@ type Options struct {
 	SkipPaths        []string
 }
 
+// ValidFormats is the set of recognised OutputFormat values.
+var ValidFormats = map[string]bool{
+	"spdx23": true, "spdx22": true, "cdx14": true, "cdx15": true,
+	"spdx-2.3": true, "spdx-2.2": true, "cdx-1.4": true, "cdx-1.5": true,
+}
+
+// ValidCatalogs is the set of recognised Catalog values (empty string = no catalog).
+var ValidCatalogs = map[string]bool{
+	"": true, "syft": true, "trivy": true,
+}
+
 // DefaultOptions returns default generator options
 func DefaultOptions() *Options {
 	return &Options{
@@ -48,6 +59,22 @@ func DefaultOptions() *Options {
 		ProjectDir:       "",
 		SkipPaths:        []string{},
 	}
+}
+
+// Validate checks that the Options fields are self-consistent and supported.
+// Library callers should invoke this before generator.New(opts) to get a clear
+// error rather than silent fallback to defaults.
+func (o *Options) Validate() error {
+	if !ValidFormats[strings.ToLower(o.OutputFormat)] {
+		return fmt.Errorf("invalid output format %q (supported: spdx23, spdx22, cdx14, cdx15)", o.OutputFormat)
+	}
+	if !ValidCatalogs[strings.ToLower(o.Catalog)] {
+		return fmt.Errorf("invalid catalog %q (supported: syft, trivy)", o.Catalog)
+	}
+	if o.Catalog != "" && o.CatalogFile != "" {
+		return fmt.Errorf("Catalog and CatalogFile cannot both be set")
+	}
+	return nil
 }
 
 type Generator struct {

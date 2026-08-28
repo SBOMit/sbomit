@@ -1,12 +1,75 @@
 package generator
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/protobom/protobom/pkg/formats"
 	"github.com/protobom/protobom/pkg/sbom"
 	"github.com/protobom/protobom/pkg/writer"
 )
+
+func TestOptionsValidate(t *testing.T) {
+	tests := []struct {
+		name        string
+		opts        Options
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid defaults",
+			opts: Options{OutputFormat: "spdx23", Catalog: ""},
+		},
+		{
+			name: "valid uppercase format alias",
+			opts: Options{OutputFormat: "CDX15", Catalog: ""},
+		},
+		{
+			name: "valid cdx alias with dash",
+			opts: Options{OutputFormat: "cdx-1.5", Catalog: "trivy"},
+		},
+		{
+			name: "valid syft catalog",
+			opts: Options{OutputFormat: "spdx22", Catalog: "syft"},
+		},
+		{
+			name:        "invalid output format",
+			opts:        Options{OutputFormat: "xml", Catalog: ""},
+			wantErr:     true,
+			errContains: "invalid output format",
+		},
+		{
+			name:        "invalid catalog",
+			opts:        Options{OutputFormat: "spdx23", Catalog: "grype"},
+			wantErr:     true,
+			errContains: "invalid catalog",
+		},
+		{
+			name:        "catalog and catalogFile both set",
+			opts:        Options{OutputFormat: "spdx23", Catalog: "syft", CatalogFile: "/some/file.json"},
+			wantErr:     true,
+			errContains: "cannot both be set",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.opts.Validate()
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				if tc.errContains != "" && !strings.Contains(err.Error(), tc.errContains) {
+					t.Fatalf("expected error containing %q, got: %v", tc.errContains, err)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("expected no error, got: %v", err)
+				}
+			}
+		})
+	}
+}
 
 func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
 	tmp := t.TempDir()

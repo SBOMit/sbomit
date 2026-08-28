@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sbomit/sbomit/pkg/generator"
 	"github.com/spf13/cobra"
@@ -72,29 +71,6 @@ func runGenerate(attestationFile string) error {
 		return fmt.Errorf("attestation file not found: %s", attestationFile)
 	}
 
-	validFormats := map[string]bool{
-		"spdx23": true, "spdx22": true, "cdx14": true, "cdx15": true,
-		"spdx-2.3": true, "spdx-2.2": true, "cdx-1.4": true, "cdx-1.5": true,
-	}
-	if !validFormats[strings.ToLower(outputFormat)] {
-		return fmt.Errorf("invalid output format: %s (supported: spdx23, spdx22, cdx14, cdx15)", outputFormat)
-	}
-
-	validCatalogs := map[string]bool{
-		"": true, "syft": true, "trivy": true,
-	}
-	if !validCatalogs[strings.ToLower(catalog)] {
-		return fmt.Errorf("invalid catalog: %s (supported: syft, trivy)", catalog)
-	}
-	if catalog != "" && catalogFile != "" {
-		return fmt.Errorf("--catalog and --catalog-file cannot be used together")
-	}
-	if catalogFile != "" {
-		if _, err := os.Stat(catalogFile); os.IsNotExist(err) {
-			return fmt.Errorf("catalog file not found: %s", catalogFile)
-		}
-	}
-
 	opts := &generator.Options{
 		DocumentName:     documentName,
 		DocumentVersion:  documentVersion,
@@ -106,6 +82,18 @@ func runGenerate(attestationFile string) error {
 		CatalogFile:      catalogFile,
 		ProjectDir:       projectDir,
 		SkipPaths:        skipPaths,
+	}
+
+	if err := opts.Validate(); err != nil {
+		return err
+	}
+
+	// File-existence check stays here: it is a CLI UX concern (fast failure
+	// before any processing) rather than pure option validation.
+	if catalogFile != "" {
+		if _, err := os.Stat(catalogFile); os.IsNotExist(err) {
+			return fmt.Errorf("catalog file not found: %s", catalogFile)
+		}
 	}
 
 	gen := generator.New(opts)

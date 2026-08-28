@@ -12,6 +12,40 @@ import (
 	"github.com/protobom/protobom/pkg/writer"
 )
 
+func TestRunGenerateRejectsInvalidFormat(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	outputFormat = "xml"
+	catalog = ""
+	catalogFile = ""
+
+	err := runGenerate(filepath.Join("..", "test", "sample-attestation.json"))
+	if err == nil {
+		t.Fatal("expected error for invalid format, got nil")
+	}
+	if !strings.Contains(err.Error(), "invalid output format") {
+		t.Fatalf("expected 'invalid output format' in error, got: %v", err)
+	}
+}
+
+func TestRunGenerateRejectsInvalidCatalog(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	outputFormat = "spdx23"
+	catalog = "grype"
+	catalogFile = ""
+
+	err := runGenerate(filepath.Join("..", "test", "sample-attestation.json"))
+	if err == nil {
+		t.Fatal("expected error for invalid catalog, got nil")
+	}
+	if !strings.Contains(err.Error(), "invalid catalog") {
+		t.Fatalf("expected 'invalid catalog' in error, got: %v", err)
+	}
+}
+
 func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
 	restore := snapshotGenerateGlobals()
 	defer restore()
