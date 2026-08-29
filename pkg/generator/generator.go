@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -35,6 +36,17 @@ type Options struct {
 	SkipPaths        []string
 }
 
+// ValidFormats is the set of recognised OutputFormat values.
+var ValidFormats = map[string]bool{
+	"spdx23": true, "spdx22": true, "cdx14": true, "cdx15": true,
+	"spdx-2.3": true, "spdx-2.2": true, "cdx-1.4": true, "cdx-1.5": true,
+}
+
+// ValidCatalogs is the set of recognised Catalog values (empty string = no catalog).
+var ValidCatalogs = map[string]bool{
+	"": true, "syft": true, "trivy": true,
+}
+
 // DefaultOptions returns default generator options
 func DefaultOptions() *Options {
 	return &Options{
@@ -48,6 +60,22 @@ func DefaultOptions() *Options {
 		ProjectDir:       "",
 		SkipPaths:        []string{},
 	}
+}
+
+// Validate checks that the Options fields are self-consistent and supported.
+// Library callers should invoke this before generator.New(opts) to get a clear
+// error rather than silent fallback to defaults.
+func (o *Options) Validate() error {
+	if !ValidFormats[strings.ToLower(o.OutputFormat)] {
+		return fmt.Errorf("invalid output format %q (supported: spdx23, spdx22, cdx14, cdx15)", o.OutputFormat)
+	}
+	if !ValidCatalogs[strings.ToLower(o.Catalog)] {
+		return fmt.Errorf("invalid catalog %q (supported: syft, trivy)", o.Catalog)
+	}
+	if o.Catalog != "" && o.CatalogFile != "" {
+		return fmt.Errorf("Catalog and CatalogFile cannot both be set")
+	}
+	return nil
 }
 
 type Generator struct {
@@ -99,6 +127,9 @@ func (g *Generator) printParsedAttestationSummary(attestations []attestation.Typ
 	fmt.Fprintf(os.Stderr, "Parsed attestations (%d total): %s\n", len(attestations), strings.Join(parts, ", "))
 }
 
+// GenerateFromAttestations builds and returns an *sbom.Document from the
+// provided attestations. It no longer writes any output; call Write to
+// serialise the document.
 func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAttestation) (*sbom.Document, error) {
 	var baseDoc *sbom.Document
 	var err error
@@ -160,12 +191,33 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 		g.applyMetadata(baseDoc)
 		enrichment := g.mergePreferAttestation(baseDoc, attDoc)
 		WriteEnrichmentSummary(os.Stderr, enrichment)
-		err = g.writeOutput(baseDoc)
-		return baseDoc, err
+		return baseDoc, nil
 	}
 
-	err = g.writeOutput(attDoc)
-	return attDoc, err
+	return attDoc, nil
+}
+
+// Write serialises doc to w using the output format configured in Options.
+// The caller is responsible for opening and closing the destination (file,
+// os.Stdout, bytes.Buffer, etc.).
+func (g *Generator) Write(w io.Writer, doc *sbom.Document) error {
+	wr := writer.New()
+	format := g.getOutputFormat()
+	return wr.WriteStreamWithOptions(doc, &writeCloserAdapter{w: w}, &writer.Options{Format: format})
+}
+
+// writeCloserAdapter wraps an io.Writer so it satisfies io.WriteCloser.
+// Close is a no-op because the caller owns the underlying writer.
+type writeCloserAdapter struct {
+	w io.Writer
+}
+
+func (a *writeCloserAdapter) Write(p []byte) (int, error) {
+	return a.w.Write(p)
+}
+
+func (a *writeCloserAdapter) Close() error {
+	return nil
 }
 
 func (g *Generator) shouldSkip(path string) bool {
@@ -547,33 +599,6 @@ func (g *Generator) createFileNode(file resolver.FileInfo) *sbom.Node {
 	}
 
 	return node
-}
-
-// nopWriteCloser wraps os.File to implement io.WriteCloser
-type nopWriteCloser struct {
-	w *os.File
-}
-
-func (n *nopWriteCloser) Write(p []byte) (int, error) {
-	return n.w.Write(p)
-}
-
-func (n *nopWriteCloser) Close() error {
-	if n.w == os.Stdout {
-		return nil
-	}
-	return n.w.Close()
-}
-
-func (g *Generator) writeOutput(doc *sbom.Document) error {
-	w := writer.New()
-	format := g.getOutputFormat()
-
-	if g.opts.OutputPath == "" || g.opts.OutputPath == "-" {
-		return w.WriteStreamWithOptions(doc, &nopWriteCloser{w: os.Stdout}, &writer.Options{Format: format})
-	}
-
-	return w.WriteFileWithOptions(doc, g.opts.OutputPath, &writer.Options{Format: format})
 }
 
 func (g *Generator) getOutputFormat() formats.Format {

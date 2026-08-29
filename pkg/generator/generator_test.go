@@ -1,12 +1,77 @@
 package generator
 
 import (
+	"bytes"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/protobom/protobom/pkg/formats"
 	"github.com/protobom/protobom/pkg/sbom"
 	"github.com/protobom/protobom/pkg/writer"
 )
+
+func TestOptionsValidate(t *testing.T) {
+	tests := []struct {
+		name        string
+		opts        Options
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid defaults",
+			opts: Options{OutputFormat: "spdx23", Catalog: ""},
+		},
+		{
+			name: "valid uppercase format alias",
+			opts: Options{OutputFormat: "CDX15", Catalog: ""},
+		},
+		{
+			name: "valid cdx alias with dash",
+			opts: Options{OutputFormat: "cdx-1.5", Catalog: "trivy"},
+		},
+		{
+			name: "valid syft catalog",
+			opts: Options{OutputFormat: "spdx22", Catalog: "syft"},
+		},
+		{
+			name:        "invalid output format",
+			opts:        Options{OutputFormat: "xml", Catalog: ""},
+			wantErr:     true,
+			errContains: "invalid output format",
+		},
+		{
+			name:        "invalid catalog",
+			opts:        Options{OutputFormat: "spdx23", Catalog: "grype"},
+			wantErr:     true,
+			errContains: "invalid catalog",
+		},
+		{
+			name:        "catalog and catalogFile both set",
+			opts:        Options{OutputFormat: "spdx23", Catalog: "syft", CatalogFile: "/some/file.json"},
+			wantErr:     true,
+			errContains: "cannot both be set",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.opts.Validate()
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				if tc.errContains != "" && !strings.Contains(err.Error(), tc.errContains) {
+					t.Fatalf("expected error containing %q, got: %v", tc.errContains, err)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("expected no error, got: %v", err)
+				}
+			}
+		})
+	}
+}
 
 func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
 	tmp := t.TempDir()
@@ -36,14 +101,25 @@ func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
 		DocumentVersion:  "0.0.1",
 		AttestationTypes: []string{},
 		OutputFormat:     "spdx23",
-		OutputPath:       outPath,
 		CatalogFile:      catalogPath,
 		ProjectDir:       "/does/not/exist",
 	})
 
-	if _, err := gen.GenerateFromAttestations(nil); err != nil {
+	// GenerateFromAttestations no longer writes output; get the doc and write it ourselves.
+	doc, err := gen.GenerateFromAttestations(nil)
+	if err != nil {
 		t.Fatalf("generate with catalog file: %v", err)
 	}
+
+	f, err := os.Create(outPath)
+	if err != nil {
+		t.Fatalf("create output file: %v", err)
+	}
+	if err := gen.Write(f, doc); err != nil {
+		_ = f.Close()
+		t.Fatalf("write SBOM: %v", err)
+	}
+	_ = f.Close()
 
 	outDoc, err := gen.readCatalogFile(outPath)
 	if err != nil {
@@ -57,6 +133,29 @@ func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
 	}
 
 	t.Fatal("catalog package was not preserved")
+}
+
+func TestWrite_WritesToBuffer(t *testing.T) {
+	gen := New(&Options{
+		DocumentName:     "buf-test",
+		DocumentVersion:  "0.0.1",
+		AttestationTypes: []string{},
+		OutputFormat:     "spdx23",
+	})
+
+	doc, err := gen.GenerateFromAttestations(nil)
+	if err != nil {
+		t.Fatalf("generate: %v", err)
+	}
+
+	var buf bytes.Buffer
+	if err := gen.Write(&buf, doc); err != nil {
+		t.Fatalf("Write to buffer: %v", err)
+	}
+
+	if !strings.Contains(buf.String(), "spdxVersion") {
+		t.Fatalf("expected SPDX JSON in buffer, got: %s", buf.String())
+	}
 }
 
 func TestMergePreferAttestationTracksAddedPackages(t *testing.T) {
