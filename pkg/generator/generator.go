@@ -393,34 +393,18 @@ func (g *Generator) runSyft(projectDir string) (*sbom.Document, error) {
 		return nil, fmt.Errorf("syft not found in PATH. Install options:\n  - macOS (brew): brew install syft\n  - go install: go install github.com/anchore/syft/cmd/syft@latest\n  - other platforms: https://github.com/anchore/syft#installation")
 	}
 
-	tmpFile, err := os.CreateTemp("", "sbomit-syft-*.json")
-	if err != nil {
-		return nil, fmt.Errorf("create temp file: %w", err)
-	}
-	defer func() {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFile.Name())
-	}()
-
+	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd := exec.Command("syft", projectDir, "-o", "spdx-json")
-	cmd.Stdout = tmpFile
+	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("syft failed: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
-	if err := tmpFile.Sync(); err != nil {
-		return nil, fmt.Errorf("sync syft output: %w", err)
-	}
-
-	if err := tmpFile.Close(); err != nil {
-		return nil, fmt.Errorf("close syft output: %w", err)
-	}
-
 	r := reader.New()
-	return r.ParseFile(tmpFile.Name())
+	return r.ParseStream(bytes.NewReader(stdout.Bytes()))
 }
 
 func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
@@ -428,34 +412,20 @@ func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
 		return nil, fmt.Errorf("trivy not found in PATH. Install options:\n  - macOS (brew): brew install trivy\n  - other platforms: https://trivy.dev/docs/latest/getting-started/installation/")
 	}
 
-	tmpFile, err := os.CreateTemp("", "sbomit-trivy-*.json")
-	if err != nil {
-		return nil, fmt.Errorf("create temp file: %w", err)
-	}
-	defer func() {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFile.Name())
-	}()
-
-	if err := tmpFile.Close(); err != nil {
-		return nil, fmt.Errorf(
-			"close temp file before running trivy: %w",
-			err,
-		)
-	}
-
+	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	// Tell Trivy to scan the directory and output an SPDX JSON file
-	cmd := exec.Command("trivy", "fs", "--format", "spdx-json", "--output", tmpFile.Name(), projectDir)
-	cmd.Stderr = &stderr
 
+	// Tell Trivy to scan the directory and output an SPDX JSON file
+	cmd := exec.Command("trivy", "fs", "--format", "spdx-json", projectDir)
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("trivy failed: %w: %s", err, strings.TrimSpace(stderr.String()))
 	}
 
 	// Parse the SBOM using protobom (the same way we do with Syft)
 	r := reader.New()
-	return r.ParseFile(tmpFile.Name())
+	return r.ParseStream(bytes.NewReader(stdout.Bytes()))
 }
 
 func (g *Generator) createPackageNode(pkg resolver.PackageInfo) *sbom.Node {
