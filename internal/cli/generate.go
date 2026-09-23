@@ -1,11 +1,11 @@
-package cmd
+package cli
 
 import (
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/sbomit/sbomit/pkg/generator"
+	"github.com/sbomit/sbomit/internal/generator"
 	"github.com/spf13/cobra"
 )
 

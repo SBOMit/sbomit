@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
 	skipPaths = nil
 	summaryFlag = false
 
-	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "..", "test", "sample-attestation.json"))
 	if err != nil {
 		t.Fatalf("runGenerate returned error: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestRunGenerateDetailedSummaryToStderrWithFileOutput(t *testing.T) {
 	skipPaths = nil
 	summaryFlag = true
 
-	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "..", "test", "sample-attestation.json"))
 	if err != nil {
 		t.Fatalf("runGenerate returned error: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestRunGeneratePrintsEnrichmentSummaryWithCatalogFile(t *testing.T) {
 	skipPaths = nil
 	summaryFlag = false
 
-	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "..", "test", "sample-attestation.json"))
 	if err != nil {
 		t.Fatalf("runGenerate returned error: %v", err)
 	}
