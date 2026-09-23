@@ -7,7 +7,7 @@ type PackageInfo struct {
 	PURL        string            `json:"purl"`
 	Licenses    []string          `json:"licenses,omitempty"`
 	Hashes      map[string]string `json:"hashes,omitempty"`
-	FoundBy     string            `json:"found_by"` // which resolver found this
+	FoundBy     string            `json:"found_by"`               // which resolver found this
 	DownloadURL string            `json:"download_url,omitempty"` // set by network resolvers
 	DownloadIP  string            `json:"download_ip,omitempty"`  // set by network resolvers
 }
