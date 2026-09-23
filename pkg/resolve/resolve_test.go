@@ -1,10 +1,10 @@
 package resolve
 
 import (
+	"github.com/sbomit/sbomit/pkg/attestation"
 	"os"
 	"path/filepath"
 	"testing"
-	"github.com/sbomit/sbomit/pkg/attestation"
 )
 
 func TestResolveFromFile(t *testing.T) {
@@ -64,8 +64,95 @@ func TestResolveOrjsonWitness(t *testing.T) {
 	if len(result.Packages) != 89 {
 		t.Errorf("expected 89 packages, got %d", len(result.Packages))
 	}
-	if len(result.Files) != 625 {
-		t.Errorf("expected 625 files, got %d", len(result.Files))
+
+	// Files now carries package-owned paths as well as unclaimed ones.
+	if len(result.Files) != 4768 {
+		t.Errorf("expected 4768 files, got %d", len(result.Files))
+	}
+
+	// The unclaimed subset is what earlier versions reported as Files.
+	if got := len(result.UnownedFiles()); got != 625 {
+		t.Errorf("expected 625 unowned files, got %d", got)
+	}
+
+	lean, err := Resolve(data, Options{OmitOwnedFiles: true})
+	if err != nil {
+		t.Fatalf("Resolve with OmitOwnedFiles returned error: %v", err)
+	}
+	if len(lean.Files) != 625 {
+		t.Errorf("OmitOwnedFiles: expected 625 files, got %d", len(lean.Files))
+	}
+}
+
+// Every package must cite the path it was derived from, and every owned path
+// must be reachable from the package that owns it.
+func TestResolveLocationsAndRelationships(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "test", "orjson_witness.json"))
+	if err != nil {
+		t.Fatalf("failed to read test attestation: %v", err)
+	}
+
+	result, err := Resolve(data, Options{})
+	if err != nil {
+		t.Fatalf("Resolve returned error: %v", err)
+	}
+
+	// Locations is evidence, not an inventory: exactly one path per package.
+	for _, p := range result.Packages {
+		if len(p.Locations) != 1 {
+			t.Errorf("%s has %d locations %v, want 1", p.PURL, len(p.Locations), p.Locations)
+		}
+	}
+
+	var evident, contains int
+	for _, rel := range result.Relationships {
+		if _, ok := result.PackageByID(rel.FromPackageID); !ok {
+			t.Fatalf("relationship references unknown package %q", rel.FromPackageID)
+		}
+		if rel.ToPath == "" {
+			t.Error("relationship with empty ToPath")
+		}
+
+		switch rel.Type {
+		case EvidentBy:
+			evident++
+		case Contains:
+			contains++
+		default:
+			t.Errorf("unexpected relationship type %q", rel.Type)
+		}
+	}
+
+	// One evidence edge per package, and containment for the rest.
+	if evident != len(result.Packages) {
+		t.Errorf("got %d evident-by relationships, want one per package (%d)", evident, len(result.Packages))
+	}
+	if contains == 0 {
+		t.Error("expected containment relationships, got none")
+	}
+}
+
+// Evidence must be the file that declares the distribution, not whichever
+// path in the package directory happened to be seen first.
+func TestResolvePicksDeclaringFileAsEvidence(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "test", "orjson_witness.json"))
+	if err != nil {
+		t.Fatalf("failed to read test attestation: %v", err)
+	}
+
+	result, err := Resolve(data, Options{})
+	if err != nil {
+		t.Fatalf("Resolve returned error: %v", err)
+	}
+
+	for _, p := range result.Packages {
+		if p.Ecosystem != "pypi" || len(p.Locations) == 0 {
+			continue
+		}
+		base := filepath.Base(p.Locations[0])
+		if base != "METADATA" && base != "PKG-INFO" {
+			t.Errorf("%s cites %q as evidence, want METADATA or PKG-INFO", p.PURL, base)
+		}
 	}
 }
 
@@ -114,7 +201,6 @@ func BenchmarkResolve(b *testing.B) {
 		}
 	}
 }
-
 
 func TestResolvePackageIDStability(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join("..", "..", "test", "sample-attestation.json"))

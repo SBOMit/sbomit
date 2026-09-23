@@ -28,8 +28,7 @@ func NewMavenResolver() *MavenResolver { return &MavenResolver{} }
 func (r *MavenResolver) Name() string { return "maven" }
 
 func (r *MavenResolver) Resolve(files []FileInfo) ([]PackageInfo, []FileInfo) {
-	seen := make(map[string]bool)
-	var packages []PackageInfo
+	g := newGroup()
 	var remaining []FileInfo
 
 	for _, f := range files {
@@ -60,33 +59,48 @@ func (r *MavenResolver) Resolve(files []FileInfo) ([]PackageInfo, []FileInfo) {
 
 		purl := fmt.Sprintf("pkg:maven/%s/%s@%s", group, artifact, version)
 
-		if seen[purl] {
-			continue
-		}
-		seen[purl] = true
-
-		packages = append(packages, PackageInfo{
+		g.add(purl, PackageInfo{
 			Name:      artifact,
 			Version:   version,
 			Ecosystem: "maven",
 			PURL:      purl,
 			FoundBy:   "attestation:maven",
-		})
+		}, f)
 	}
 
-	return packages, remaining
+	packages, rest := g.finish(rankMavenEvidence)
+	return packages, append(remaining, rest...)
 }
 
-type mavenPackageFilter struct {
-	prefix string
+// rankMavenEvidence prefers the published artifact, then its pom. A version
+// directory also holds checksums, signatures and Maven's own bookkeeping, none
+// of which identify the artifact.
+func rankMavenEvidence(p string) int {
+	base := strings.ToLower(p)
+
+	// Checksums and signatures sit beside the artifact and share its stem, so
+	// test them before the packaging extensions.
+	for _, ext := range []string{".sha1", ".sha256", ".sha512", ".md5", ".asc"} {
+		if strings.HasSuffix(base, ext) {
+			return 0
+		}
+	}
+
+	for _, ext := range []string{".jar", ".war", ".ear", ".aar", ".zip"} {
+		if strings.HasSuffix(base, ext) {
+			return 3
+		}
+	}
+
+	if strings.HasSuffix(base, ".pom") {
+		return 2
+	}
+
+	return 1
 }
 
-func (f *mavenPackageFilter) Matches(path string) bool {
-	return strings.Contains(path, f.prefix)
-}
-
-func (r *MavenResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFilter {
-	var filters []PackageFileFilter
+func (r *MavenResolver) OwnershipFilters(packages []PackageInfo) []OwnershipFilter {
+	var filters []OwnershipFilter
 	for _, pkg := range packages {
 		if pkg.Ecosystem != "maven" {
 			continue
@@ -109,7 +123,10 @@ func (r *MavenResolver) CreateFileFilters(packages []PackageInfo) []PackageFileF
 		artifact := groupAndArtifact[slashIdx+1:]
 		groupAsPath := strings.ReplaceAll(group, ".", "/")
 		prefix := fmt.Sprintf("/.m2/repository/%s/%s/%s/", groupAsPath, artifact, version)
-		filters = append(filters, &mavenPackageFilter{prefix: prefix})
+		filters = append(filters, OwnershipFilter{
+			PURL:    pkg.PURL,
+			Matcher: MatcherFunc(func(p Path) bool { return strings.Contains(p.Clean, prefix) }),
+		})
 	}
 	return filters
 }

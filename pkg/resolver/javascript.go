@@ -21,7 +21,7 @@ func (r *JavaScriptResolver) Name() string {
 }
 
 func (r *JavaScriptResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
-	seen := make(map[string]struct{})
+	g := newGroup()
 
 	for _, f := range files {
 		np := path.Clean(f.Path)
@@ -38,73 +38,59 @@ func (r *JavaScriptResolver) Resolve(files []FileInfo) (packages []PackageInfo, 
 		}
 
 		name = NormalizeNpmPackageName(name)
-		key := name + "@" + version
-		if _, ok := seen[key]; ok {
-			continue
-		}
-		seen[key] = struct{}{}
-
-		purl := "pkg:npm/" + name + "@" + version
-		pkg := PackageInfo{
+		g.add(name+"@"+version, PackageInfo{
 			Name:      name,
 			Version:   version,
 			Ecosystem: "npm",
-			PURL:      purl,
+			PURL:      "pkg:npm/" + name + "@" + version,
 			FoundBy:   "attestation:javascript",
-		}
-		packages = append(packages, pkg)
+		}, f)
 	}
 
-	return packages, remainingFiles
+	packages, rest := g.finish(rankNpmEvidence)
+	return packages, append(remainingFiles, rest...)
 }
 
-func (r *JavaScriptResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFilter {
-	var filters []PackageFileFilter
+// rankNpmEvidence prefers package.json, the manifest that declares the
+// package's name and version.
+func rankNpmEvidence(p string) int {
+	if path.Base(p) == "package.json" {
+		return 1
+	}
+	return 0
+}
+
+func (r *JavaScriptResolver) OwnershipFilters(packages []PackageInfo) []OwnershipFilter {
+	var filters []OwnershipFilter
 
 	for _, pkg := range packages {
 		if pkg.Ecosystem != "npm" {
 			continue
 		}
 
-		filters = append(filters, &jsPackageFilter{
-			packageName: pkg.Name,
-			version:     pkg.Version,
+		name := strings.ToLower(pkg.Name)
+		ver := strings.ToLower(pkg.Version)
+		if name == "" || ver == "" {
+			continue
+		}
+
+		// Precomputed, so matching doesn't concatenate on every comparison.
+		pnpmNeedle := "/node_modules/.pnpm/" + strings.ReplaceAll(name, "/", "+") + "@" + ver
+		nameNeedle := "/node_modules/" + name + "/"
+
+		filters = append(filters, OwnershipFilter{
+			PURL: pkg.PURL,
+			Matcher: MatcherFunc(func(p Path) bool {
+				if !strings.Contains(p.Lower, "/node_modules/.pnpm/") {
+					return false
+				}
+				return strings.Contains(p.Lower, pnpmNeedle) &&
+					strings.Contains(p.Lower, nameNeedle)
+			}),
 		})
 	}
 
 	return filters
-}
-
-type jsPackageFilter struct {
-	packageName string
-	version     string
-}
-
-func (f *jsPackageFilter) Matches(p string) bool {
-	np := path.Clean(p)
-	npLower := strings.ToLower(np)
-
-	if !strings.Contains(npLower, "/node_modules/.pnpm/") {
-		return false
-	}
-
-	name := strings.ToLower(f.packageName)
-	ver := strings.ToLower(f.version)
-	if name == "" || ver == "" {
-		return false
-	}
-
-	pnpmName := strings.ReplaceAll(name, "/", "+")
-	if strings.HasPrefix(pnpmName, "@") {
-		pnpmName = "@" + strings.TrimPrefix(pnpmName, "@")
-	}
-
-	if strings.Contains(npLower, "/node_modules/.pnpm/"+pnpmName+"@"+ver) &&
-		strings.Contains(npLower, "/node_modules/"+name+"/") {
-		return true
-	}
-
-	return false
 }
 
 func (r *JavaScriptResolver) isJavaScriptPath(p string) bool {
