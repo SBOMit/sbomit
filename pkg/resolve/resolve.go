@@ -6,7 +6,6 @@ import (
 
 	"github.com/sbomit/sbomit/pkg/attestation"
 	"github.com/sbomit/sbomit/pkg/resolver"
-	"github.com/sbomit/sbomit/pkg/resolver/network"
 )
 
 // Resolve parses a witness attestation bundle (bare in-toto statement or DSSE
@@ -46,12 +45,6 @@ func ResolveAttestations(attestations []attestation.TypedAttestation, opts Optio
 	chain := resolver.NewResolverChain()
 	resolved := chain.ResolveAll(files)
 
-	// Resolve packages from network connections.
-	networkConns := network.ExtractConnections(attestations)
-	netChain := network.NewChain()
-	networkPkgs := netChain.ResolveAll(networkConns)
-	resolved = mergeNetworkPackages(resolved, networkPkgs)
-
 	return assemble(resolved, opts), nil
 }
 
@@ -60,35 +53,58 @@ func ResolveAttestations(attestations []attestation.TypedAttestation, opts Optio
 func assemble(resolved resolver.ResolverResult, opts Options) *Result {
 	out := &Result{}
 
+	idByPURL := make(map[string]string, len(resolved.Packages))
 	for _, pkg := range resolved.Packages {
 		id := packageID(pkg.PURL)
+		idByPURL[pkg.PURL] = id
 
-		p := Package{
-			ID:          id,
-			Name:        pkg.Name,
-			Version:     pkg.Version,
-			Ecosystem:   pkg.Ecosystem,
-			PURL:        pkg.PURL,
-			FoundBy:     pkg.FoundBy,
-			DownloadURL: pkg.DownloadURL,
-			DownloadIP:  pkg.DownloadIP,
-			Digests:     digestsOf(pkg.Hashes),
-		}
-
-		// The resolver currently stores the evidence path in the package's
-		// FoundBy field but does not carry explicit location lists. We
-		// derive a single location from the PURL for now. Downstream
-		// consumers (e.g. syft adapters) should resolve paths through
-		// their own file resolver.
-		out.Packages = append(out.Packages, p)
-
-		// Each package's evidence path creates an EvidentBy relationship.
-		// Note: the current resolver chain does not return explicit
-		// per-package locations, so this relationship set will grow as
-		// the resolver layer is enriched.
+		out.Packages = append(out.Packages, Package{
+			ID:        id,
+			Name:      pkg.Name,
+			Version:   pkg.Version,
+			Ecosystem: pkg.Ecosystem,
+			PURL:      pkg.PURL,
+			Locations: pkg.Locations,
+			FoundBy:   pkg.FoundBy,
+			Digests:   digestsOf(pkg.Hashes),
+		})
 	}
 
-	// Remaining files that no resolver claimed become unowned files.
+	// Which paths identified which package, so evidence edges can be
+	// distinguished from plain containment.
+	evidence := make(map[string]struct{})
+	for _, pkg := range resolved.Packages {
+		for _, loc := range pkg.Locations {
+			evidence[pkg.PURL+"\x00"+loc] = struct{}{}
+		}
+	}
+
+	for _, owned := range resolved.Owned {
+		id, ok := idByPURL[owned.OwnerPURL]
+		if !ok {
+			continue
+		}
+
+		relType := Contains
+		if _, isEvidence := evidence[owned.OwnerPURL+"\x00"+owned.Path]; isEvidence {
+			relType = EvidentBy
+		}
+
+		out.Relationships = append(out.Relationships, Relationship{
+			Type:          relType,
+			FromPackageID: id,
+			ToPath:        owned.Path,
+		})
+
+		if !opts.OmitOwnedFiles {
+			out.Files = append(out.Files, File{
+				Path:    owned.Path,
+				Digests: digestsOf(owned.Hashes),
+			})
+		}
+	}
+
+	// Files that no package claimed.
 	for _, f := range resolved.Files {
 		out.Files = append(out.Files, File{
 			Path:    f.Path,
@@ -99,32 +115,6 @@ func assemble(resolved resolver.ResolverResult, opts Options) *Result {
 	sort.Slice(out.Files, func(i, j int) bool { return out.Files[i].Path < out.Files[j].Path })
 
 	return out
-}
-
-// mergeNetworkPackages merges network-resolved packages into the file-resolved
-// result. If a package is already present (matched by PURL), the download URL
-// and IP are attached; otherwise it is appended as a new entry.
-func mergeNetworkPackages(result resolver.ResolverResult, networkPkgs []resolver.PackageInfo) resolver.ResolverResult {
-	if len(networkPkgs) == 0 {
-		return result
-	}
-
-	existingByPURL := make(map[string]int, len(result.Packages))
-	for i, pkg := range result.Packages {
-		existingByPURL[pkg.PURL] = i
-	}
-
-	for _, npkg := range networkPkgs {
-		if idx, found := existingByPURL[npkg.PURL]; found {
-			result.Packages[idx].DownloadURL = npkg.DownloadURL
-			result.Packages[idx].DownloadIP = npkg.DownloadIP
-		} else {
-			result.Packages = append(result.Packages, npkg)
-			existingByPURL[npkg.PURL] = len(result.Packages) - 1
-		}
-	}
-
-	return result
 }
 
 // shouldExclude returns true if the path matches any of the user's exclude globs.

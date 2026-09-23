@@ -21,7 +21,7 @@ func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
 	documentName = "sbomit-sbom"
 	documentVersion = "0.0.1"
 	authors = nil
-	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	attestationTypes = []string{"material", "command-run", "product"}
 	catalog = ""
 	catalogFile = ""
 	projectDir = ""
@@ -65,7 +65,7 @@ func TestRunGenerateDetailedSummaryToStderrWithFileOutput(t *testing.T) {
 	documentName = "sbomit-sbom"
 	documentVersion = "0.0.1"
 	authors = nil
-	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	attestationTypes = []string{"material", "command-run", "product"}
 	catalog = ""
 	catalogFile = ""
 	projectDir = ""
@@ -113,7 +113,7 @@ func TestRunGeneratePrintsEnrichmentSummaryWithCatalogFile(t *testing.T) {
 	documentName = "sbomit-sbom"
 	documentVersion = "0.0.1"
 	authors = nil
-	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	attestationTypes = []string{"material", "command-run", "product"}
 	catalog = ""
 	catalogFile = catalogPath
 	projectDir = ""

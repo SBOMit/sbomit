@@ -24,8 +24,7 @@ func (r *GoResolver) Name() string {
 }
 
 func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
-	byKey := make(map[string]*PackageInfo)
-	order := []string{}
+	g := newGroup()
 
 	for _, f := range files {
 		np := path.Clean(f.Path)
@@ -42,69 +41,71 @@ func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainin
 		}
 
 		module = DecodeGoModulePath(module)
-		key := module + "@" + version
-		if _, ok := byKey[key]; !ok {
-			byKey[key] = &PackageInfo{
-				Name:      module,
-				Version:   version,
-				Ecosystem: "golang",
-				PURL:      "pkg:golang/" + module + "@" + encodeGoPURLVersion(version),
-				FoundBy:   "attestation:go",
-			}
-			order = append(order, key)
-		}
+		g.add(module+"@"+version, PackageInfo{
+			Name:      module,
+			Version:   version,
+			Ecosystem: "golang",
+			PURL:      "pkg:golang/" + module + "@" + encodeGoPURLVersion(version),
+			FoundBy:   "attestation:go",
+		}, f)
 	}
 
-	for _, key := range order {
-		packages = append(packages, *byKey[key])
-	}
-
-	return packages, remainingFiles
+	packages, rest := g.finish(rankGoEvidence)
+	return packages, append(remainingFiles, rest...)
 }
 
-func (r *GoResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFilter {
-	var filters []PackageFileFilter
+// rankGoEvidence prefers the module zip: it is the distributed artifact, so it
+// is the strongest evidence that the module was used.
+func rankGoEvidence(p string) int {
+	switch {
+	case strings.HasSuffix(p, ".zip"):
+		return 3
+	case strings.HasSuffix(p, ".info"), strings.HasSuffix(p, ".mod"):
+		return 2
+	case strings.Contains(p, "/pkg/mod/cache/download/"):
+		return 1
+	default:
+		return 0
+	}
+}
+
+func (r *GoResolver) OwnershipFilters(packages []PackageInfo) []OwnershipFilter {
+	var filters []OwnershipFilter
 
 	for _, pkg := range packages {
 		if pkg.Ecosystem != "golang" {
 			continue
 		}
 
-		filters = append(filters, &goPackageFilter{
-			modulePath: pkg.Name,
-			version:    pkg.Version,
+		// Precomputed, so matching doesn't concatenate on every comparison.
+		version := strings.ToLower(pkg.Version)
+		variants := goModulePathVariants(pkg.Name)
+		needles := make([]string, 0, len(variants)*2)
+		for _, v := range variants {
+			vl := strings.ToLower(v)
+			needles = append(needles,
+				"/pkg/mod/"+vl+"@"+version+"/",
+				"/pkg/mod/cache/download/"+vl+"/@v/"+version+".",
+			)
+		}
+
+		filters = append(filters, OwnershipFilter{
+			PURL: pkg.PURL,
+			Matcher: MatcherFunc(func(p Path) bool {
+				if !strings.Contains(p.Lower, "/pkg/mod/") {
+					return false
+				}
+				for _, n := range needles {
+					if strings.Contains(p.Lower, n) {
+						return true
+					}
+				}
+				return false
+			}),
 		})
 	}
 
 	return filters
-}
-
-type goPackageFilter struct {
-	modulePath string
-	version    string
-}
-
-func (f *goPackageFilter) Matches(p string) bool {
-	np := path.Clean(p)
-	npLower := strings.ToLower(np)
-	version := strings.ToLower(f.version)
-
-	if !strings.Contains(npLower, "/pkg/mod/") {
-		return false
-	}
-
-	variants := goModulePathVariants(f.modulePath)
-	for _, variant := range variants {
-		variantLower := strings.ToLower(variant)
-		if strings.Contains(npLower, "/pkg/mod/"+variantLower+"@"+version+"/") {
-			return true
-		}
-		if strings.Contains(npLower, "/pkg/mod/cache/download/"+variantLower+"/@v/"+version+".") {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (r *GoResolver) isGoPath(p string) bool {

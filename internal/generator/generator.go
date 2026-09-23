@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -18,8 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/sbomit/sbomit/pkg/attestation"
-	"github.com/sbomit/sbomit/pkg/resolver"
-	"github.com/sbomit/sbomit/pkg/resolver/network"
+	"github.com/sbomit/sbomit/pkg/resolve"
 )
 
 type Options struct {
@@ -41,7 +39,7 @@ func DefaultOptions() *Options {
 		DocumentName:     "sbomit-generated-sbom",
 		DocumentVersion:  "0.0.1",
 		Authors:          []string{},
-		AttestationTypes: []string{"material", "command-run", "product", "network-trace"},
+		AttestationTypes: []string{"material", "command-run", "product"},
 		OutputFormat:     "spdx23",
 		Catalog:          "",
 		CatalogFile:      "",
@@ -51,20 +49,14 @@ func DefaultOptions() *Options {
 }
 
 type Generator struct {
-	opts          *Options
-	resolverChain *resolver.ResolverChain
-	networkChain  *network.Chain
+	opts *Options
 }
 
 func New(opts *Options) *Generator {
 	if opts == nil {
 		opts = DefaultOptions()
 	}
-	return &Generator{
-		opts:          opts,
-		resolverChain: resolver.NewResolverChain(),
-		networkChain:  network.NewChain(),
-	}
+	return &Generator{opts: opts}
 }
 
 func (g *Generator) GenerateFromFile(attestationPath string) (*sbom.Document, error) {
@@ -131,28 +123,15 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 		}
 	}
 
-	attFiles := attestation.ExtractFilesFromAttestations(attestations, g.opts.AttestationTypes)
-
-	// Convert to resolver.FileInfo format
-	var files []resolver.FileInfo
-	for _, f := range attFiles {
-		if g.shouldSkip(f.Path) {
-			fmt.Fprintf(os.Stderr, "Excluded item: %s\n", f.Path)
-			continue
-		}
-		files = append(files, resolver.FileInfo{
-			Path:   f.Path,
-			Hashes: f.Hashes,
-		})
+	// The library is the single resolution path, so the SBOM the CLI emits and
+	// the result an importer sees are produced by the same code.
+	result, err := resolve.ResolveAttestations(attestations, resolve.Options{
+		AttestationTypes: g.opts.AttestationTypes,
+		ExcludePaths:     g.opts.SkipPaths,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve attestations: %w", err)
 	}
-
-	// Run through resolver chain (filtering + resolution)
-	result := g.resolverChain.ResolveAll(files)
-
-	// Resolve packages from network connections
-	networkConns := network.ExtractConnections(attestations)
-	networkPkgs := g.networkChain.ResolveAll(networkConns)
-	result = mergeNetworkPackages(result, networkPkgs)
 
 	attDoc := g.createDocument(result)
 
@@ -168,86 +147,7 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 	return attDoc, err
 }
 
-func (g *Generator) shouldSkip(path string) bool {
-	// Check skip paths
-	for _, pattern := range g.opts.SkipPaths {
-		matched, _ := filepath.Match(pattern, path)
-		if matched {
-			return true
-		}
-	}
-	return false
-}
-
-// mergeNetworkPackages merges network-resolved packages into the file-resolved result.
-//
-// If a package is already present (matched by PURL), the download URL and IP from the
-// network connection are appended as PURL qualifiers:
-//
-//	pkg:pypi/certifi@2025.11.12?url=https://files.pythonhosted.org/...&ip=151.101.128.223
-//
-// If the package is not yet in the SBOM it is appended as a new entry.
-func mergeNetworkPackages(result resolver.ResolverResult, networkPkgs []resolver.PackageInfo) resolver.ResolverResult {
-	if len(networkPkgs) == 0 {
-		return result
-	}
-
-	existingByPURL := make(map[string]int, len(result.Packages))
-	for i, pkg := range result.Packages {
-		existingByPURL[pkg.PURL] = i
-	}
-
-	for _, npkg := range networkPkgs {
-		if idx, found := existingByPURL[npkg.PURL]; found {
-			result.Packages[idx].PURL = withNetworkQualifiers(result.Packages[idx].PURL, npkg.DownloadURL, npkg.DownloadIP)
-		} else {
-			result.Packages = append(result.Packages, npkg)
-			existingByPURL[npkg.PURL] = len(result.Packages) - 1
-		}
-	}
-
-	return result
-}
-
-// withNetworkQualifiers appends ?url=...&ip=... qualifiers to a PURL.
-// Values are percent-encoded per RFC 3986 as required by the PURL spec.
-func withNetworkQualifiers(purl, downloadURL, downloadIP string) string {
-	if downloadURL == "" && downloadIP == "" {
-		return purl
-	}
-
-	sep := "?"
-	if strings.Contains(purl, "?") {
-		sep = "&"
-	}
-
-	var parts []string
-	if downloadURL != "" {
-		parts = append(parts, "url="+purlEncodeValue(downloadURL))
-	}
-	if downloadIP != "" {
-		parts = append(parts, "ip="+purlEncodeValue(downloadIP))
-	}
-
-	return purl + sep + strings.Join(parts, "&")
-}
-
-// purlEncodeValue percent-encodes a PURL qualifier value (RFC 3986 §2.1).
-// We encode the characters that would otherwise break PURL parsing: & = ? #
-func purlEncodeValue(s string) string {
-	var b strings.Builder
-	for _, c := range s {
-		switch c {
-		case '&', '=', '?', '#', '%':
-			fmt.Fprintf(&b, "%%%02X", c)
-		default:
-			b.WriteRune(c)
-		}
-	}
-	return b.String()
-}
-
-func (g *Generator) createDocument(result resolver.ResolverResult) *sbom.Document {
+func (g *Generator) createDocument(result *resolve.Result) *sbom.Document {
 	doc := sbom.NewDocument()
 
 	doc.Metadata.Id = fmt.Sprintf("urn:uuid:%s", generateUUID())
@@ -281,10 +181,22 @@ func (g *Generator) createDocument(result resolver.ResolverResult) *sbom.Documen
 		doc.NodeList.RelateNodeAtID(node, appNode.Id, sbom.Edge_contains)
 	}
 
-	// Add unresolved files
+	// To know which package owns which path
+	ownerByPath := make(map[string]string, len(result.Relationships))
+	for _, rel := range result.Relationships {
+		if pkg, ok := result.PackageByID(rel.FromPackageID); ok {
+			ownerByPath[rel.ToPath] = pkg.PURL
+		}
+	}
+
 	for _, file := range result.Files {
 		node := g.createFileNode(file)
 		doc.NodeList.AddNode(node)
+
+		if ownerID, owned := ownerByPath[file.Path]; owned {
+			doc.NodeList.RelateNodeAtID(node, ownerID, sbom.Edge_contains)
+			continue
+		}
 		doc.NodeList.RelateNodeAtID(node, appNode.Id, sbom.Edge_contains)
 	}
 
@@ -507,31 +419,30 @@ func (g *Generator) runTrivy(projectDir string) (*sbom.Document, error) {
 	return r.ParseFile(tmpFile.Name())
 }
 
-func (g *Generator) createPackageNode(pkg resolver.PackageInfo) *sbom.Node {
+func (g *Generator) createPackageNode(pkg resolve.Package) *sbom.Node {
 	node := &sbom.Node{
 		Id:             pkg.PURL,
 		Type:           sbom.Node_PACKAGE,
 		Name:           pkg.Name,
 		Version:        pkg.Version,
 		PrimaryPurpose: []sbom.Purpose{sbom.Purpose_LIBRARY},
-		Licenses:       pkg.Licenses,
 		Identifiers:    make(map[int32]string),
 		Hashes:         make(map[int32]string),
 	}
 
 	node.Identifiers[int32(sbom.SoftwareIdentifierType_PURL)] = pkg.PURL
 
-	for algo, hash := range pkg.Hashes {
-		hashAlgo := mapHashAlgorithm(algo)
+	for _, d := range pkg.Digests {
+		hashAlgo := mapHashAlgorithm(d.Algorithm)
 		if hashAlgo != sbom.HashAlgorithm_UNKNOWN {
-			node.Hashes[int32(hashAlgo)] = hash
+			node.Hashes[int32(hashAlgo)] = d.Value
 		}
 	}
 
 	return node
 }
 
-func (g *Generator) createFileNode(file resolver.FileInfo) *sbom.Node {
+func (g *Generator) createFileNode(file resolve.File) *sbom.Node {
 	node := &sbom.Node{
 		Id:     fmt.Sprintf("File-%s", sanitizeID(file.Path)),
 		Type:   sbom.Node_FILE,
@@ -539,10 +450,10 @@ func (g *Generator) createFileNode(file resolver.FileInfo) *sbom.Node {
 		Hashes: make(map[int32]string),
 	}
 
-	for algo, hash := range file.Hashes {
-		hashAlgo := mapHashAlgorithm(algo)
+	for _, d := range file.Digests {
+		hashAlgo := mapHashAlgorithm(d.Algorithm)
 		if hashAlgo != sbom.HashAlgorithm_UNKNOWN {
-			node.Hashes[int32(hashAlgo)] = hash
+			node.Hashes[int32(hashAlgo)] = d.Value
 		}
 	}
 

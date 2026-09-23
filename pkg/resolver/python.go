@@ -26,7 +26,7 @@ func (r *PythonResolver) Name() string {
 }
 
 func (r *PythonResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
-	seenMeta := make(map[string]struct{}) // Track seen packages by name@version
+	g := newGroup()
 
 	for _, f := range files {
 		np := path.Clean(f.Path)
@@ -40,78 +40,77 @@ func (r *PythonResolver) Resolve(files []FileInfo) (packages []PackageInfo, rema
 		if len(matches) >= 4 {
 			name := NormalizePackageName(matches[1])
 			version := matches[2]
-			key := name + "@" + version
 
-			if _, ok := seenMeta[key]; ok {
-				continue
-			}
-			seenMeta[key] = struct{}{}
-
-			purl := "pkg:pypi/" + name + "@" + version
-			pkg := PackageInfo{
+			g.add(name+"@"+version, PackageInfo{
 				Name:      name,
 				Version:   version,
 				Ecosystem: "pypi",
-				PURL:      purl,
+				PURL:      "pkg:pypi/" + name + "@" + version,
 				FoundBy:   "attestation:python",
-			}
-			packages = append(packages, pkg)
-			// Don't add this to remainingFiles since it was resolved
+			}, f)
 		} else {
 			// File looks Python-related but couldn't extract package info
 			remainingFiles = append(remainingFiles, f)
 		}
 	}
 
-	return packages, remainingFiles
+	packages, rest := g.finish(rankPythonEvidence)
+	return packages, append(remainingFiles, rest...)
 }
 
-// Filter out files belonging to resolved Python packages
-func (r *PythonResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFilter {
-	var filters []PackageFileFilter
+// rankPythonEvidence prefers the file that actually declares the distribution.
+// RECORD, WHEEL and INSTALLER sit in the same dist-info directory but are
+// installer boilerplate, identical across packages, so they rank below an
+// ordinary module source file.
+func rankPythonEvidence(p string) int {
+	switch strings.ToUpper(path.Base(p)) {
+	case "METADATA", "PKG-INFO":
+		return 2
+	case "RECORD", "WHEEL", "INSTALLER":
+		return 0
+	default:
+		return 1
+	}
+}
+
+// OwnershipFilters attributes files under a package's directory to it.
+func (r *PythonResolver) OwnershipFilters(packages []PackageInfo) []OwnershipFilter {
+	var filters []OwnershipFilter
 
 	for _, pkg := range packages {
 		if pkg.Ecosystem != "pypi" {
 			continue
 		}
 
-		filters = append(filters, &pythonPackageFilter{
-			packageName: pkg.Name,
-			version:     pkg.Version,
+		// Precomputed, so matching doesn't concatenate on every comparison.
+		variants := getPythonPackageDirVariants(pkg.Name)
+		needles := make([]string, 0, len(variants)*4)
+		for _, v := range variants {
+			needles = append(needles,
+				"/site-packages/"+v+"/",
+				"/dist-packages/"+v+"/",
+				"/site-packages/"+v+"-",
+				"/dist-packages/"+v+"-",
+			)
+		}
+
+		filters = append(filters, OwnershipFilter{
+			PURL: pkg.PURL,
+			Matcher: MatcherFunc(func(p Path) bool {
+				if !strings.Contains(p.Lower, "site-packages") && !strings.Contains(p.Lower, "dist-packages") {
+					return false
+				}
+				for _, n := range needles {
+					if strings.Contains(p.Lower, n) {
+						return true
+					}
+				}
+				return false
+			}),
 		})
 	}
 
 	return filters
-}
-
-type pythonPackageFilter struct {
-	packageName string
-	version     string
-}
-
-func (f *pythonPackageFilter) Matches(p string) bool {
-	np := path.Clean(p)
-	npLower := strings.ToLower(np)
-
-	if !strings.Contains(npLower, "site-packages") && !strings.Contains(npLower, "dist-packages") {
-		return false
-	}
-
-	pkgDirVariants := getPythonPackageDirVariants(f.packageName)
-
-	for _, variant := range pkgDirVariants {
-		if strings.Contains(npLower, "/site-packages/"+variant+"/") ||
-			strings.Contains(npLower, "/dist-packages/"+variant+"/") {
-			return true
-		}
-
-		if strings.Contains(npLower, "/site-packages/"+variant+"-") ||
-			strings.Contains(npLower, "/dist-packages/"+variant+"-") {
-			return true
-		}
-	}
-
-	return false
 }
 
 func getPythonPackageDirVariants(name string) []string {
