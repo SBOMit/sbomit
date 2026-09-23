@@ -1,19 +1,26 @@
 package resolver
 
 type PackageInfo struct {
-	Name        string            `json:"name"`
-	Version     string            `json:"version"`
-	Ecosystem   string            `json:"ecosystem"` // pypi, golang, cargo, npm, etc.
-	PURL        string            `json:"purl"`
-	Licenses    []string          `json:"licenses,omitempty"`
+	Name      string   `json:"name"`
+	Version   string   `json:"version"`
+	Ecosystem string   `json:"ecosystem"` // pypi, golang, cargo, npm, etc.
+	PURL      string   `json:"purl"`
+	Licenses  []string `json:"licenses,omitempty"`
+	// Hashes should be the digest of the package artifact itself: the wheel,
+	// tarball, crate, or module that was distributed as the package.
+	// It must never hold the digest of an individual file that merely belongs
+	// to the package. A package checksum that is really a member-file checksum
+	// cannot be verified against anything the registry publishes.
+
 	Hashes      map[string]string `json:"hashes,omitempty"`
-	FoundBy     string            `json:"found_by"` // which resolver found this
+	FoundBy     string            `json:"found_by"`               // which resolver found this
 	DownloadURL string            `json:"download_url,omitempty"` // set by network resolvers
 	DownloadIP  string            `json:"download_ip,omitempty"`  // set by network resolvers
 }
 
 type FileInfo struct {
-	Path   string            `json:"path"`
+	Path string `json:"path"`
+	// File digests stay on file nodes.
 	Hashes map[string]string `json:"hashes,omitempty"`
 }
 
