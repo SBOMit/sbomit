@@ -2,13 +2,23 @@
 // describes.
 //
 // Given a witness attestation recording what a build actually touched, it
-// returns which packages were used and which files no package accounts for.
+// returns which packages were used, which files belong to them, and which
+// files no package accounts for.
 //
 //	bundle, _ := os.ReadFile("attestation.json")
 //	result, err := resolve.Resolve(bundle, resolve.Options{})
 //	for _, p := range result.Packages {
 //	    fmt.Println(p.PURL, "evidenced by", p.Locations[0])
 //	}
+//
+// Package identity is derived from paths. A build that opened
+//
+//	/usr/lib/python3.11/site-packages/werkzeug-3.0.1.dist-info/METADATA
+//
+// used werkzeug 3.0.1, and that is knowable from the path alone — which
+// matters, because an attestation records paths and digests but no content.
+// [Package.Locations] names the path each conclusion rests on so a
+// consumer can judge it.
 //
 // Resolve accepts a bare in-toto statement or a DSSE envelope. For finer
 // control, call [attestation.ParseWitnessData] and pass the result to
@@ -25,10 +35,11 @@ import (
 type Result struct {
 	Packages []Package
 
-	// Files are the attested paths that no package claimed. Files belonging to
-	// a package are deliberately absent — they are represented by
-	// Relationships instead, so a package and its contents are not reported
-	// twice. [Options.IncludeOwnedFiles] includes them here too.
+	// Files are the attested paths, both those belonging to a package and
+	// those no package claimed. Ownership is in Relationships rather than
+	// implied by presence here.
+	// [Options.OmitOwnedFiles] narrows this to just the unclaimed paths
+	// [Result.UnownedFiles] does the same after.
 	Files []File
 
 	// Relationships map packages to the paths they own.
@@ -59,14 +70,6 @@ type Package struct {
 
 	// FoundBy names the resolver that derived this package.
 	FoundBy string
-
-	// DownloadURL is the URL from which the package was downloaded, set by
-	// network resolvers when available.
-	DownloadURL string
-
-	// DownloadIP is the IP address from which the package was downloaded,
-	// set by network resolvers when available.
-	DownloadIP string
 }
 
 // File is an attested path with whatever digests the attestation recorded.
@@ -105,9 +108,7 @@ type Relationship struct {
 	ToPath        string
 }
 
-// UnownedFiles returns the files no package claimed. With the default options
-// this is the same as Files; with [Options.IncludeOwnedFiles] it filters back
-// down.
+// UnownedFiles returns the files no package claimed
 func (r *Result) UnownedFiles() []File {
 	owned := make(map[string]struct{}, len(r.Relationships))
 	for _, rel := range r.Relationships {

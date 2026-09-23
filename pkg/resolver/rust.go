@@ -3,6 +3,7 @@ package resolver
 import (
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -24,6 +25,7 @@ func (r *RustResolver) Name() string {
 
 func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
 	chosenByName := map[string]string{}
+	candidates := map[string][]FileInfo{}
 
 	for _, f := range files {
 		pp := path.Clean(strings.TrimSpace(f.Path))
@@ -38,15 +40,18 @@ func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remain
 
 		if m := r.crateFileWithVer.FindStringSubmatch(pp); len(m) == 3 {
 			if r.isCargoRegistryPath(pp) {
-				chosenByName[NormalizeRustCrateName(m[1])] = m[2]
+				name := NormalizeRustCrateName(m[1])
+				chosenByName[name] = m[2]
+				candidates[name] = append(candidates[name], f)
 			}
 			continue
 		}
 
 		if name, version, ok := r.findLastCrateDirWithVer(pp); ok {
 			if r.isCargoRegistryPath(pp) || strings.Contains(pp, "/crates/") || strings.Contains(pp, "/registry/src/") {
-				chosenByName[NormalizeRustCrateName(name)] = version
-				continue
+				name = NormalizeRustCrateName(name)
+				chosenByName[name] = version
+				candidates[name] = append(candidates[name], f)
 			}
 			continue
 		}
@@ -73,74 +78,92 @@ func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remain
 		remainingFiles = append(remainingFiles, f)
 	}
 
-	for name, version := range chosenByName {
+	// Sorted, because map iteration order is random and package order would
+	// otherwise differ between runs on identical input.
+	names := make([]string, 0, len(chosenByName))
+	for name := range chosenByName {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		version := chosenByName[name]
 		if name == "" || version == "" {
 			continue
 		}
-		purlName := strings.ToLower(name)
-		purl := "pkg:cargo/" + purlName + "@" + version
-		pkg := PackageInfo{
+
+		// Non-evidence files are already carried by the second pass above, so
+		// only the citation is taken here.
+		evidence, _ := pickEvidence(candidates[name], rankRustEvidence)
+
+		packages = append(packages, PackageInfo{
 			Name:      name,
 			Version:   version,
 			Ecosystem: "cargo",
-			PURL:      purl,
+			PURL:      "pkg:cargo/" + strings.ToLower(name) + "@" + version,
 			FoundBy:   "attestation:rust",
-		}
-		packages = append(packages, pkg)
+			Locations: []string{evidence.Path},
+		})
 	}
 
 	return packages, remainingFiles
 }
 
-func (r *RustResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFilter {
-	var filters []PackageFileFilter
+// rankRustEvidence prefers the .crate archive: it is the artifact crates.io
+// publishes. Cargo.toml declares the crate, so it comes next.
+func rankRustEvidence(p string) int {
+	base := strings.ToLower(path.Base(p))
+	switch {
+	case strings.HasSuffix(base, ".crate"):
+		return 3
+	case base == "cargo.toml":
+		return 2
+	case base == ".cargo-checksum.json":
+		return 0
+	default:
+		return 1
+	}
+}
+
+func (r *RustResolver) OwnershipFilters(packages []PackageInfo) []OwnershipFilter {
+	var filters []OwnershipFilter
 
 	for _, pkg := range packages {
 		if pkg.Ecosystem != "cargo" {
 			continue
 		}
 
-		filters = append(filters, &rustPackageFilter{
-			packageName: NormalizeRustCrateName(pkg.Name),
-			version:     pkg.Version,
+		name := strings.ToLower(NormalizeRustCrateName(pkg.Name))
+		ver := pkg.Version
+		if name == "" || ver == "" {
+			continue
+		}
+
+		// Precomputed, so matching doesn't concatenate on every comparison.
+		crateNeedle := "/" + name + "-" + ver + ".crate"
+		dirNeedle := "/" + name + "-" + ver + "/"
+
+		filters = append(filters, OwnershipFilter{
+			PURL: pkg.PURL,
+			Matcher: MatcherFunc(func(p Path) bool {
+				inRegistry := strings.Contains(p.Lower, "/registry/")
+				inCrates := strings.Contains(p.Lower, "/crates/")
+				if !inRegistry && !inCrates {
+					return false
+				}
+
+				if strings.Contains(p.Lower, "/registry/cache/") && strings.Contains(p.Lower, crateNeedle) {
+					return true
+				}
+				if strings.Contains(p.Lower, "/registry/src/") && strings.Contains(p.Lower, dirNeedle) {
+					return true
+				}
+				return inCrates && strings.Contains(p.Lower, dirNeedle)
+			}),
 		})
 	}
 
 	return filters
-}
-
-type rustPackageFilter struct {
-	packageName string
-	version     string
-}
-
-func (f *rustPackageFilter) Matches(p string) bool {
-	np := path.Clean(p)
-	npLower := strings.ToLower(np)
-
-	if !strings.Contains(npLower, "/registry/") && !strings.Contains(npLower, "/crates/") {
-		return false
-	}
-
-	name := strings.ToLower(f.packageName)
-	ver := f.version
-	if name == "" || ver == "" {
-		return false
-	}
-
-	if strings.Contains(npLower, "/registry/cache/") && strings.Contains(npLower, "/"+name+"-"+ver+".crate") {
-		return true
-	}
-
-	if strings.Contains(npLower, "/registry/src/") && strings.Contains(npLower, "/"+name+"-"+ver+"/") {
-		return true
-	}
-
-	if strings.Contains(npLower, "/crates/") && strings.Contains(npLower, "/"+name+"-"+ver+"/") {
-		return true
-	}
-
-	return false
 }
 
 func (r *RustResolver) isRustPath(p string) bool {

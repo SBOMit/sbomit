@@ -1,6 +1,9 @@
 package resolver
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestGoResolverResolvesModuleCacheDownloadFiles(t *testing.T) {
 	r := NewGoResolver()
@@ -21,8 +24,10 @@ func TestGoResolverResolvesModuleCacheDownloadFiles(t *testing.T) {
 		{Path: "/repo/main.go"},
 	})
 
-	if len(remaining) != 1 {
-		t.Fatalf("expected one remaining file, got %d", len(remaining))
+	// /repo/main.go, plus the .ziphash: it belongs to the module but is not
+	// what evidenced it, so it flows on for ownership attribution.
+	if len(remaining) != 2 {
+		t.Fatalf("expected two remaining files, got %d", len(remaining))
 	}
 	if len(packages) != 1 {
 		t.Fatalf("expected one package, got %d", len(packages))
@@ -31,6 +36,12 @@ func TestGoResolverResolvesModuleCacheDownloadFiles(t *testing.T) {
 	pkg := packages[0]
 	if pkg.PURL != "pkg:golang/github.com/BurntSushi/toml@v1.6.0" {
 		t.Fatalf("unexpected PURL: %s", pkg.PURL)
+	}
+
+	// The .mod declares the module, so it outranks the .ziphash as evidence.
+	wantLoc := "/home/user/go/pkg/mod/cache/download/github.com/!burnt!sushi/toml/@v/v1.6.0.mod"
+	if len(pkg.Locations) != 1 || pkg.Locations[0] != wantLoc {
+		t.Fatalf("unexpected locations: %v", pkg.Locations)
 	}
 	if pkg.Name != "github.com/BurntSushi/toml" {
 		t.Fatalf("unexpected package name: %s", pkg.Name)
@@ -49,14 +60,59 @@ func TestGoResolverAggregatesModuleCacheAndSourcePaths(t *testing.T) {
 		{Path: "/home/user/go/pkg/mod/cache/download/github.com/pkg/errors/@v/v0.9.1.info"},
 	})
 
-	if len(remaining) != 0 {
-		t.Fatalf("expected no remaining files, got %d", len(remaining))
+	// One path is cited as evidence; the other two stay for attribution.
+	if len(remaining) != 2 {
+		t.Fatalf("expected two remaining files, got %d", len(remaining))
 	}
 	if len(packages) != 1 {
 		t.Fatalf("expected one package, got %d", len(packages))
 	}
 	if packages[0].PURL != "pkg:golang/github.com/pkg/errors@v0.9.1" {
 		t.Fatalf("unexpected PURL: %s", packages[0].PURL)
+	}
+
+	// .info and .mod both rank as module metadata, above the source file. The
+	// tie breaks on the smaller path, which keeps the citation stable.
+	wantLoc := "/home/user/go/pkg/mod/cache/download/github.com/pkg/errors/@v/v0.9.1.info"
+	if len(packages[0].Locations) != 1 || packages[0].Locations[0] != wantLoc {
+		t.Fatalf("unexpected locations: %v", packages[0].Locations)
+	}
+}
+
+// The chain, unlike a bare resolver, attributes non-evidence files to the
+// package that owns them instead of reporting them as loose files.
+func TestResolverChainAttributesOwnedFiles(t *testing.T) {
+	result := NewResolverChain().ResolveAll([]FileInfo{
+		{Path: "/usr/lib/python3.11/site-packages/werkzeug-3.0.1.dist-info/METADATA"},
+		{Path: "/usr/lib/python3.11/site-packages/werkzeug/routing/rules.py"},
+		{Path: "/etc/ld.so.cache"},
+	})
+
+	if len(result.Packages) != 1 {
+		t.Fatalf("expected one package, got %d", len(result.Packages))
+	}
+
+	pkg := result.Packages[0]
+	if pkg.PURL != "pkg:pypi/werkzeug@3.0.1" {
+		t.Fatalf("unexpected PURL: %s", pkg.PURL)
+	}
+	if len(pkg.Locations) != 1 || !strings.HasSuffix(pkg.Locations[0], "/METADATA") {
+		t.Fatalf("expected METADATA as evidence, got %v", pkg.Locations)
+	}
+
+	// Both the evidence path and the member file are owned by werkzeug.
+	if len(result.Owned) != 2 {
+		t.Fatalf("expected two owned files, got %d: %+v", len(result.Owned), result.Owned)
+	}
+	for _, o := range result.Owned {
+		if o.OwnerPURL != pkg.PURL {
+			t.Errorf("file %q attributed to %q, want %q", o.Path, o.OwnerPURL, pkg.PURL)
+		}
+	}
+
+	// Only the file no package claims is left over.
+	if len(result.Files) != 1 || result.Files[0].Path != "/etc/ld.so.cache" {
+		t.Fatalf("unexpected unowned files: %+v", result.Files)
 	}
 }
 
