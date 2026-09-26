@@ -57,7 +57,7 @@ func NewChain() *Chain {
 
 // ResolveAll resolves all connections, deduplicating by PURL.
 func (c *Chain) ResolveAll(conns []NetworkConnection) []resolver.PackageInfo {
-	seen := make(map[string]struct{})
+	seen := make(map[string]int)
 	var packages []resolver.PackageInfo
 	for _, conn := range conns {
 		dr, ok := c.byDomain[conn.Hostname]
@@ -68,10 +68,29 @@ func (c *Chain) ResolveAll(conns []NetworkConnection) []resolver.PackageInfo {
 			if pkg.PURL == "" {
 				continue
 			}
-			if _, already := seen[pkg.PURL]; already {
+			if idx, already := seen[pkg.PURL]; already {
+				if packages[idx].DownloadURL == "" && pkg.DownloadURL != "" {
+					packages[idx].DownloadURL = pkg.DownloadURL
+				}
+				if packages[idx].DownloadIP == "" && pkg.DownloadIP != "" {
+					packages[idx].DownloadIP = pkg.DownloadIP
+				}
+				if len(packages[idx].Licenses) == 0 && len(pkg.Licenses) > 0 {
+					packages[idx].Licenses = pkg.Licenses
+				}
+				if len(pkg.Hashes) > 0 {
+					if packages[idx].Hashes == nil {
+						packages[idx].Hashes = make(map[string]string)
+					}
+					for k, v := range pkg.Hashes {
+						if _, ok := packages[idx].Hashes[k]; !ok {
+							packages[idx].Hashes[k] = v
+						}
+					}
+				}
 				continue
 			}
-			seen[pkg.PURL] = struct{}{}
+			seen[pkg.PURL] = len(packages)
 			packages = append(packages, pkg)
 		}
 	}
