@@ -255,3 +255,48 @@ func writeTestCatalog(t *testing.T, path string) {
 		t.Fatalf("write catalog SBOM: %v", err)
 	}
 }
+
+func TestRunGenerateValidationErrors(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	// Helper to run and expect an error containing a specific substring
+	expectError := func(name, attFile, expectedErrMsg string) {
+		t.Run(name, func(t *testing.T) {
+			err := runGenerate(attFile)
+			if err == nil {
+				t.Fatalf("expected error containing %q, got nil", expectedErrMsg)
+			}
+			if !strings.Contains(err.Error(), expectedErrMsg) {
+				t.Fatalf("expected error containing %q, got: %v", expectedErrMsg, err)
+			}
+		})
+	}
+
+	t.Run("Missing Attestation File", func(t *testing.T) {
+		expectError("Missing File", "does_not_exist.json", "attestation file not found")
+	})
+
+	t.Run("Invalid Output Format", func(t *testing.T) {
+		outputFormat = "invalid-format"
+		expectError("Invalid Format", filepath.Join("..", "test", "sample-attestation.json"), "invalid output format")
+	})
+
+	t.Run("Invalid Catalog", func(t *testing.T) {
+		outputFormat = "spdx23"
+		catalog = "invalid-catalog"
+		expectError("Invalid Catalog", filepath.Join("..", "test", "sample-attestation.json"), "invalid catalog")
+	})
+
+	t.Run("Both Catalog and CatalogFile", func(t *testing.T) {
+		catalog = "syft"
+		catalogFile = "some_existing.json"
+		expectError("Both Catalog Flags", filepath.Join("..", "test", "sample-attestation.json"), "--catalog and --catalog-file cannot be used together")
+	})
+
+	t.Run("Missing CatalogFile", func(t *testing.T) {
+		catalog = ""
+		catalogFile = "does_not_exist.json"
+		expectError("Missing Catalog File", filepath.Join("..", "test", "sample-attestation.json"), "catalog file not found")
+	})
+}
