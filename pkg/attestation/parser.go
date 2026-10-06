@@ -1,51 +1,59 @@
 package attestation
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
 
 func ParseWitnessFile(path string, typeFilter []string) ([]TypedAttestation, error) {
-	data, err := os.ReadFile(path)
+	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read witness file: %w", err)
 	}
+	defer file.Close()
 
-	return ParseWitnessData(data, typeFilter)
+	return parseWitnessReader(file, typeFilter)
 }
 
 func ParseWitnessData(data []byte, typeFilter []string) ([]TypedAttestation, error) {
+	return parseWitnessReader(bytes.NewReader(data), typeFilter)
+}
+
+func parseWitnessReader(r io.Reader, typeFilter []string) ([]TypedAttestation, error) {
+	decoder := json.NewDecoder(r)
+
 	var topLevel map[string]json.RawMessage
-	if err := json.Unmarshal(data, &topLevel); err != nil {
+	if err := decoder.Decode(&topLevel); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal attestation JSON: %w", err)
 	}
 
-	// Some witness outputs are direct in-toto statements (not DSSE envelopes).
-	if _, hasPredicate := topLevel["predicate"]; hasPredicate {
-		var statement InTotoStatement
-		if err := json.Unmarshal(data, &statement); err != nil {
+	var trailing json.RawMessage
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		if err == nil {
+			return nil, fmt.Errorf("failed to unmarshal attestation JSON: unexpected trailing JSON value")
+		}
+		return nil, fmt.Errorf("failed to unmarshal attestation JSON: %w", err)
+	}
+
+	if rawPredicate, hasPredicate := topLevel["predicate"]; hasPredicate {
+		var predicate map[string]interface{}
+		if err := json.Unmarshal(rawPredicate, &predicate); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal in-toto statement: %w", err)
 		}
-		return extractAttestations(statement.Predicate, typeFilter)
+		return extractAttestations(predicate, typeFilter)
 	}
 
-	var rawEnvelope struct {
-		PayloadType string          `json:"payloadType"`
-		Payload     json.RawMessage `json:"payload"`
-		Signatures  []Signature     `json:"signatures"`
-	}
-	if err := json.Unmarshal(data, &rawEnvelope); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal DSSE envelope: %w", err)
-	}
-
-	if len(rawEnvelope.Payload) == 0 {
+	rawPayload, hasPayload := topLevel["payload"]
+	if !hasPayload || len(rawPayload) == 0 {
 		return nil, fmt.Errorf("missing payload in attestation JSON (expected direct in-toto statement or DSSE envelope)")
 	}
 
-	payload, err := decodeEnvelopePayload(rawEnvelope.Payload)
+	payload, err := decodeEnvelopePayload(rawPayload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode DSSE payload: %w", err)
 	}
