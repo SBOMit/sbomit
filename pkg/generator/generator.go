@@ -2,7 +2,9 @@ package generator
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,6 +35,8 @@ type Options struct {
 	CatalogFile      string
 	ProjectDir       string
 	SkipPaths        []string
+	ShowPackage      string
+	PackageSbom      bool
 }
 
 // DefaultOptions returns default generator options
@@ -549,9 +553,9 @@ func (g *Generator) createFileNode(file resolver.FileInfo) *sbom.Node {
 	return node
 }
 
-// nopWriteCloser wraps os.File to implement io.WriteCloser
+// nopWriteCloser wraps io.Writer to implement io.WriteCloser
 type nopWriteCloser struct {
-	w *os.File
+	w io.Writer
 }
 
 func (n *nopWriteCloser) Write(p []byte) (int, error) {
@@ -559,13 +563,21 @@ func (n *nopWriteCloser) Write(p []byte) (int, error) {
 }
 
 func (n *nopWriteCloser) Close() error {
+	// If it's a closer, we don't close it if it's stdout.
 	if n.w == os.Stdout {
 		return nil
 	}
-	return n.w.Close()
+	if c, ok := n.w.(io.Closer); ok {
+		return c.Close()
+	}
+	return nil
 }
 
 func (g *Generator) writeOutput(doc *sbom.Document) error {
+	if g.opts.ShowPackage != "" && g.opts.PackageSbom {
+		return g.writePackageFragment(doc)
+	}
+
 	w := writer.New()
 	format := g.getOutputFormat()
 
@@ -574,6 +586,104 @@ func (g *Generator) writeOutput(doc *sbom.Document) error {
 	}
 
 	return w.WriteFileWithOptions(doc, g.opts.OutputPath, &writer.Options{Format: format})
+}
+
+func (g *Generator) writePackageFragment(doc *sbom.Document) error {
+	var targetNode *sbom.Node
+	for _, node := range doc.NodeList.Nodes {
+		if node.Name == g.opts.ShowPackage {
+			targetNode = node
+			break
+		}
+	}
+	if targetNode == nil {
+		return fmt.Errorf("package %q not found in generated SBOM", g.opts.ShowPackage)
+	}
+
+	tempDoc := sbom.NewDocument()
+	tempDoc.Metadata = doc.Metadata
+
+	dummyRoot := &sbom.Node{
+		Id:             "dummy-root",
+		PrimaryPurpose: []sbom.Purpose{sbom.Purpose_APPLICATION},
+		Name:           "dummy-root",
+	}
+	tempDoc.NodeList.AddRootNode(dummyRoot)
+	tempDoc.NodeList.AddNode(targetNode)
+	tempDoc.NodeList.RelateNodeAtID(targetNode, dummyRoot.Id, sbom.Edge_contains)
+
+	var buf bytes.Buffer
+	w := writer.New()
+	format := g.getOutputFormat()
+	if err := w.WriteStreamWithOptions(tempDoc, &nopWriteCloser{w: &buf}, &writer.Options{Format: format}); err != nil {
+		return err
+	}
+
+	var parsed interface{}
+	if err := json.Unmarshal(buf.Bytes(), &parsed); err != nil {
+		return err
+	}
+
+	var fragment interface{}
+	var findFragment func(v interface{}) bool
+	findFragment = func(v interface{}) bool {
+		switch val := v.(type) {
+		case map[string]interface{}:
+			// In SPDX, packages have "name". In CDX, components have "name".
+			// Check if this object is the package/component we are looking for.
+			if name, ok := val["name"].(string); ok && name == g.opts.ShowPackage {
+				// We also want to make sure it's a package or component,
+				// e.g. SPDXID exists or bom-ref exists.
+				if _, hasSPDX := val["SPDXID"]; hasSPDX {
+					fragment = val
+					return true
+				}
+				if _, hasBomRef := val["bom-ref"]; hasBomRef {
+					fragment = val
+					return true
+				}
+			}
+			for _, child := range val {
+				if findFragment(child) {
+					return true
+				}
+			}
+		case []interface{}:
+			for _, child := range val {
+				if findFragment(child) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	findFragment(parsed)
+
+	if fragment == nil {
+		return fmt.Errorf("failed to extract fragment from serialized SBOM")
+	}
+
+	fragmentBytes, err := json.MarshalIndent(fragment, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	out := os.Stdout
+	if g.opts.OutputPath != "" && g.opts.OutputPath != "-" {
+		var err error
+		out, err = os.Create(g.opts.OutputPath)
+		if err != nil {
+			return err
+		}
+		defer out.Close()
+	}
+
+	_, err = out.Write(fragmentBytes)
+	if err == nil {
+		out.WriteString("\n")
+	}
+	return err
 }
 
 func (g *Generator) getOutputFormat() formats.Format {

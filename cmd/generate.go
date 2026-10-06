@@ -21,6 +21,8 @@ var (
 	projectDir       string
 	skipPaths        []string
 	summaryFlag      bool
+	showPackage      string
+	packageSbom      bool
 )
 
 var generateCmd = &cobra.Command{
@@ -65,6 +67,8 @@ func init() {
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
 	generateCmd.Flags().StringSliceVar(&skipPaths, "skip-path", []string{}, "Exclude paths matching glob pattern")
 	generateCmd.Flags().BoolVar(&summaryFlag, "summary", false, "Also print per-package details under each ecosystem (default: only ecosystem counts are shown)")
+	generateCmd.Flags().StringVar(&showPackage, "show-package", "", "Extract and display the SBOM fragment for a specific package name")
+	generateCmd.Flags().BoolVar(&packageSbom, "package-sbom", false, "Output only the package-level SBOM fragment as JSON")
 }
 
 func runGenerate(attestationFile string) error {
@@ -106,6 +110,8 @@ func runGenerate(attestationFile string) error {
 		CatalogFile:      catalogFile,
 		ProjectDir:       projectDir,
 		SkipPaths:        skipPaths,
+		ShowPackage:      showPackage,
+		PackageSbom:      packageSbom,
 	}
 
 	gen := generator.New(opts)
@@ -114,10 +120,14 @@ func runGenerate(attestationFile string) error {
 		return fmt.Errorf("failed to generate SBOM: %w", err)
 	}
 
-	generator.WriteSummary(os.Stderr, generator.GenerateSummary(doc), summaryFlag)
+	if !packageSbom {
+		generator.WriteSummary(os.Stderr, generator.GenerateSummary(doc), summaryFlag)
+	}
 
-	if outputPath != "" {
+	if outputPath != "" && !packageSbom {
 		fmt.Fprintf(os.Stderr, "SBOM written to %s\n", outputPath)
+	} else if outputPath != "" && packageSbom {
+		fmt.Fprintf(os.Stderr, "Package SBOM fragment written to %s\n", outputPath)
 	}
 
 	return nil
