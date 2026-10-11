@@ -35,7 +35,7 @@ Flags:
   -v, --version string       Version for the SBOM document (default "0.0.1")
 ```
 
-By default, `sbomit` parses `material`, `command-run`, and `product` attestations. To restrict parsing on demand:
+By default, `sbomit` parses `material`, `command-run`, `product`, and `network-trace` attestations. To restrict parsing on demand:
 
 ```bash
 sbomit generate attestation.json --types command-run
