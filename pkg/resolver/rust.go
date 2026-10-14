@@ -3,6 +3,7 @@ package resolver
 import (
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -73,7 +74,14 @@ func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remain
 		remainingFiles = append(remainingFiles, f)
 	}
 
-	for name, version := range chosenByName {
+	var names []string
+	for name := range chosenByName {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		version := chosenByName[name]
 		if name == "" || version == "" {
 			continue
 		}
