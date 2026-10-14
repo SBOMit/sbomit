@@ -141,3 +141,93 @@ func TestWriteSummaryDetailedOutput(t *testing.T) {
 		t.Fatalf("expected detailed package listings to be sorted alphabetically, got:\n%s", output)
 	}
 }
+
+func TestWriteSummaryNonDetailedOutput(t *testing.T) {
+	summary := Summary{
+		TotalPackages: 2,
+		TotalFiles:    1,
+		PackagesByEcosystem: map[string][]string{
+			"golang": {"pkg:golang/example@v1.0.0"},
+		},
+	}
+
+	var buf bytes.Buffer
+	WriteSummary(&buf, summary, false)
+	output := buf.String()
+
+	if !strings.Contains(output, "golang: 1") {
+		t.Fatalf("expected ecosystem count in non-detailed output, got:\n%s", output)
+	}
+	if strings.Contains(output, "    - pkg:") {
+		t.Fatalf("did not expect per-package detail lines when detailed is false, got:\n%s", output)
+	}
+}
+
+func TestWriteSummaryEmptyEcosystems(t *testing.T) {
+	summary := Summary{
+		TotalPackages:       0,
+		TotalFiles:          5,
+		PackagesByEcosystem: map[string][]string{},
+	}
+
+	var buf bytes.Buffer
+	WriteSummary(&buf, summary, false)
+	output := buf.String()
+
+	if !strings.Contains(output, "  none") {
+		t.Fatalf("expected 'none' when no package ecosystems present, got:\n%s", output)
+	}
+}
+
+func TestWriteEnrichmentSummary(t *testing.T) {
+	enrichment := EnrichmentSummary{
+		BasePackages:     5,
+		AddedPackages:    2,
+		EnrichedPackages: 3,
+	}
+
+	var buf bytes.Buffer
+	WriteEnrichmentSummary(&buf, enrichment)
+	output := buf.String()
+
+	expectedLines := []string{
+		"SBOMit Enrichment Summary",
+		"Base Packages: 5",
+		"Added by Attestation: 2",
+		"Enriched Packages: 3",
+	}
+
+	for _, line := range expectedLines {
+		if !strings.Contains(output, line) {
+			t.Errorf("expected %q in enrichment summary output, got:\n%s", line, output)
+		}
+	}
+}
+
+func TestGenerateSummaryNilAndUnnamedPackage(t *testing.T) {
+	nilSummary := GenerateSummary(nil)
+	if nilSummary.TotalPackages != 0 || nilSummary.TotalFiles != 0 {
+		t.Fatalf("expected empty summary for nil document, got: %+v", nilSummary)
+	}
+
+	// Package node with no PURL and no Name should fallback to unknown-package
+	doc := &sbom.Document{
+		NodeList: &sbom.NodeList{
+			Nodes: []*sbom.Node{
+				{
+					Id:   "empty-pkg",
+					Type: sbom.Node_PACKAGE,
+				},
+			},
+		},
+	}
+
+	summary := GenerateSummary(doc)
+	if summary.TotalPackages != 1 {
+		t.Fatalf("expected 1 package, got %d", summary.TotalPackages)
+	}
+	pkgs, ok := summary.PackagesByEcosystem["unclassified"]
+	if !ok || len(pkgs) != 1 || pkgs[0] != "unknown-package" {
+		t.Fatalf("expected unclassified unknown-package, got: %+v", summary.PackagesByEcosystem)
+	}
+}
