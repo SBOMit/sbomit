@@ -1,5 +1,7 @@
 package attestation
 
+import "strings"
+
 // Extractor is the interface that all attestation type extractors must implement
 type Extractor interface {
 	// Name returns the name/type of attestation this extractor handles (e.g., "material", "command-run", "product")
@@ -43,7 +45,7 @@ func (c *ExtractorChain) ExtractAll(attestations []TypedAttestation, typeFilter 
 	filterSet := make(map[string]struct{})
 	if len(typeFilter) > 0 {
 		for _, t := range typeFilter {
-			filterSet[t] = struct{}{}
+			filterSet[strings.ToLower(strings.TrimSpace(t))] = struct{}{}
 		}
 	}
 
