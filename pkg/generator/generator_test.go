@@ -136,3 +136,105 @@ func testPackageNode(purl string) *sbom.Node {
 		},
 	}
 }
+
+func TestSanitizeID(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"my/package@1.0.0", "my-package-at-1.0.0"},
+		{"group:artifact:1.0", "group-artifact-1.0"},
+		{"path\\with\\backslashes", "path-with-backslashes"},
+		{"multiple   spaces", "multiple-spaces"},
+		{"---leading-and-trailing---", "leading-and-trailing"},
+		{"repeated----hyphens", "repeated-hyphens"},
+	}
+
+	for _, tc := range tests {
+		actual := sanitizeID(tc.input)
+		if actual != tc.expected {
+			t.Errorf("sanitizeID(%q): expected %q, got %q", tc.input, tc.expected, actual)
+		}
+	}
+}
+
+func TestMapHashAlgorithm(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected sbom.HashAlgorithm
+	}{
+		{"sha256", sbom.HashAlgorithm_SHA256},
+		{"SHA-256", sbom.HashAlgorithm_SHA256},
+		{"sha1", sbom.HashAlgorithm_SHA1},
+		{"SHA-1", sbom.HashAlgorithm_SHA1},
+		{"sha512", sbom.HashAlgorithm_SHA512},
+		{"SHA-512", sbom.HashAlgorithm_SHA512},
+		{"sha384", sbom.HashAlgorithm_SHA384},
+		{"SHA-384", sbom.HashAlgorithm_SHA384},
+		{"md5", sbom.HashAlgorithm_MD5},
+		{"MD5", sbom.HashAlgorithm_MD5},
+		{"unknown-algo", sbom.HashAlgorithm_UNKNOWN},
+	}
+
+	for _, tc := range tests {
+		actual := mapHashAlgorithm(tc.input)
+		if actual != tc.expected {
+			t.Errorf("mapHashAlgorithm(%q): expected %v, got %v", tc.input, tc.expected, actual)
+		}
+	}
+}
+
+func TestWithNetworkQualifiers(t *testing.T) {
+	tests := []struct {
+		name        string
+		purl        string
+		downloadURL string
+		downloadIP  string
+		expected    string
+	}{
+		{
+			name:        "Empty qualifiers return untouched PURL",
+			purl:        "pkg:golang/github.com/google/uuid@v1.3.0",
+			downloadURL: "",
+			downloadIP:  "",
+			expected:    "pkg:golang/github.com/google/uuid@v1.3.0",
+		},
+		{
+			name:        "PURL with download URL",
+			purl:        "pkg:golang/github.com/google/uuid@v1.3.0",
+			downloadURL: "https://proxy.golang.org/uuid.zip",
+			downloadIP:  "",
+			expected:    "pkg:golang/github.com/google/uuid@v1.3.0?url=https://proxy.golang.org/uuid.zip",
+		},
+		{
+			name:        "PURL with download IP and URL",
+			purl:        "pkg:golang/github.com/google/uuid@v1.3.0",
+			downloadURL: "https://proxy.golang.org/uuid.zip",
+			downloadIP:  "142.250.190.49",
+			expected:    "pkg:golang/github.com/google/uuid@v1.3.0?url=https://proxy.golang.org/uuid.zip&ip=142.250.190.49",
+		},
+		{
+			name:        "PURL already containing query params appends with ampersand",
+			purl:        "pkg:golang/github.com/google/uuid@v1.3.0?existing=val",
+			downloadURL: "https://proxy.golang.org/uuid.zip",
+			downloadIP:  "",
+			expected:    "pkg:golang/github.com/google/uuid@v1.3.0?existing=val&url=https://proxy.golang.org/uuid.zip",
+		},
+		{
+			name:        "Encodes special characters in URL",
+			purl:        "pkg:golang/test@v1.0.0",
+			downloadURL: "https://example.com/test?a=1&b=2#frag",
+			downloadIP:  "",
+			expected:    "pkg:golang/test@v1.0.0?url=https://example.com/test%3Fa%3D1%26b%3D2%23frag",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := withNetworkQualifiers(tc.purl, tc.downloadURL, tc.downloadIP)
+			if actual != tc.expected {
+				t.Errorf("expected %q, got %q", tc.expected, actual)
+			}
+		})
+	}
+}

@@ -139,6 +139,142 @@ func TestRunGeneratePrintsEnrichmentSummaryWithCatalogFile(t *testing.T) {
 	}
 }
 
+func TestRunGenerateValidationErrors(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	validAttestation := filepath.Join("..", "test", "sample-attestation.json")
+
+	t.Run("Non-existent attestation file", func(t *testing.T) {
+		err := runGenerate("non-existent-attestation-file.json")
+		if err == nil || !strings.Contains(err.Error(), "attestation file not found") {
+			t.Fatalf("expected 'attestation file not found' error, got: %v", err)
+		}
+	})
+
+	t.Run("Invalid output format", func(t *testing.T) {
+		outputFormat = "invalid-format"
+		err := runGenerate(validAttestation)
+		if err == nil || !strings.Contains(err.Error(), "invalid output format") {
+			t.Fatalf("expected 'invalid output format' error, got: %v", err)
+		}
+	})
+
+	t.Run("Invalid catalog tool", func(t *testing.T) {
+		outputFormat = "spdx23"
+		catalog = "unsupported-cataloger"
+		err := runGenerate(validAttestation)
+		if err == nil || !strings.Contains(err.Error(), "invalid catalog") {
+			t.Fatalf("expected 'invalid catalog' error, got: %v", err)
+		}
+	})
+
+	t.Run("Conflicting catalog and catalog-file flags", func(t *testing.T) {
+		outputFormat = "spdx23"
+		catalog = "syft"
+		catalogFile = "some-catalog.json"
+		err := runGenerate(validAttestation)
+		if err == nil || !strings.Contains(err.Error(), "--catalog and --catalog-file cannot be used together") {
+			t.Fatalf("expected conflicting catalog error, got: %v", err)
+		}
+	})
+
+	t.Run("Non-existent catalog file", func(t *testing.T) {
+		outputFormat = "spdx23"
+		catalog = ""
+		catalogFile = "non-existent-catalog.json"
+		err := runGenerate(validAttestation)
+		if err == nil || !strings.Contains(err.Error(), "catalog file not found") {
+			t.Fatalf("expected 'catalog file not found' error, got: %v", err)
+		}
+	})
+}
+
+func TestRunGenerateSupportedFormatsIntegration(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	formatsToTest := []struct {
+		format   string
+		contains string
+	}{
+		{"spdx23", "\"spdxVersion\""},
+		{"cdx14", "\"bomFormat\""},
+		{"cdx15", "\"bomFormat\""},
+	}
+
+	for _, tc := range formatsToTest {
+		t.Run("Format_"+tc.format, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			target := filepath.Join(tmpDir, "sbom_"+tc.format+".json")
+
+			outputPath = target
+			outputFormat = tc.format
+			documentName = "sbomit-test-" + tc.format
+			documentVersion = "1.0.0"
+			authors = []string{"SBOMit Tester"}
+			attestationTypes = []string{"material", "command-run", "product"}
+			catalog = ""
+			catalogFile = ""
+			projectDir = ""
+			skipPaths = nil
+			summaryFlag = false
+
+			_, _, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+			if err != nil {
+				t.Fatalf("runGenerate failed for format %s: %v", tc.format, err)
+			}
+
+			data, err := os.ReadFile(target)
+			if err != nil {
+				t.Fatalf("failed to read output SBOM: %v", err)
+			}
+
+			if !strings.Contains(string(data), tc.contains) {
+				t.Fatalf("expected output file to contain %q for format %s", tc.contains, tc.format)
+			}
+		})
+	}
+}
+
+func TestRunGenerateWithOrjsonWitnessFixture(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	tmpDir := t.TempDir()
+	target := filepath.Join(tmpDir, "orjson-sbom.spdx.json")
+
+	outputPath = target
+	outputFormat = "spdx23"
+	documentName = "orjson-test"
+	documentVersion = "1.0.0"
+	authors = []string{"Tester"}
+	attestationTypes = []string{"material", "command-run", "product"}
+	catalog = ""
+	catalogFile = ""
+	projectDir = ""
+	skipPaths = nil
+	summaryFlag = true
+
+	_, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "orjson_witness.json"))
+	if err != nil {
+		t.Fatalf("runGenerate failed on orjson_witness.json: %v", err)
+	}
+
+	if !strings.Contains(stderr, "SBOM Summary") {
+		t.Fatalf("expected SBOM summary in stderr, got: %s", stderr)
+	}
+
+	data, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatalf("failed to read generated SBOM: %v", err)
+	}
+
+	if !strings.Contains(string(data), "\"spdxVersion\": \"SPDX-2.3\"") {
+		t.Fatalf("expected SPDX-2.3 version in generated output")
+	}
+}
+
 func snapshotGenerateGlobals() func() {
 	prevOutputPath := outputPath
 	prevOutputFormat := outputFormat
