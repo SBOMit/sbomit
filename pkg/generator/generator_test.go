@@ -6,6 +6,7 @@ import (
 	"github.com/protobom/protobom/pkg/formats"
 	"github.com/protobom/protobom/pkg/sbom"
 	"github.com/protobom/protobom/pkg/writer"
+	"github.com/sbomit/sbomit/pkg/resolver"
 )
 
 func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
@@ -135,4 +136,52 @@ func testPackageNode(purl string) *sbom.Node {
 			int32(sbom.SoftwareIdentifierType_PURL): purl,
 		},
 	}
+}
+
+func TestGeneratorToolVersion(t *testing.T) {
+	origVersion := Version
+	defer func() { Version = origVersion }()
+
+	testVer := "1.2.3-test"
+	Version = testVer
+
+	gen := New(DefaultOptions())
+
+	t.Run("createDocument uses Version", func(t *testing.T) {
+		doc := gen.createDocument(resolver.ResolverResult{})
+		if doc == nil || doc.Metadata == nil {
+			t.Fatal("expected document and metadata to be created")
+		}
+		var foundTool *sbom.Tool
+		for _, tool := range doc.Metadata.Tools {
+			if tool != nil && tool.Name == "sbomit" {
+				foundTool = tool
+				break
+			}
+		}
+		if foundTool == nil {
+			t.Fatal("expected sbomit tool in document metadata")
+		}
+		if foundTool.Version != testVer {
+			t.Fatalf("expected sbomit tool version %q, got %q", testVer, foundTool.Version)
+		}
+	})
+
+	t.Run("applyMetadata uses Version", func(t *testing.T) {
+		baseDoc := sbom.NewDocument()
+		gen.applyMetadata(baseDoc)
+		var foundTool *sbom.Tool
+		for _, tool := range baseDoc.Metadata.Tools {
+			if tool != nil && tool.Name == "sbomit" {
+				foundTool = tool
+				break
+			}
+		}
+		if foundTool == nil {
+			t.Fatal("expected sbomit tool in baseDoc metadata")
+		}
+		if foundTool.Version != testVer {
+			t.Fatalf("expected sbomit tool version %q, got %q", testVer, foundTool.Version)
+		}
+	})
 }
