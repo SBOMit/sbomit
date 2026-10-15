@@ -26,7 +26,7 @@ Flags:
       --author strings       Document authors (can be specified multiple times)
   -c, --catalog string       Cataloger to run before processing attestations (supported: syft, trivy)
       --catalog-file string  Existing SBOM catalog file to merge with attestation-derived packages
-  -f, --format string        SBOM output format (supported: spdx23, spdx22, cdx14, cdx15) (default "spdx23")
+  -f, --format string        SBOM output format (supported: spdx3, spdx23, spdx22, cdx14, cdx15) (default "spdx23")
   -h, --help                 help for generate
   -n, --name string          Name for the SBOM document (default "sbomit-sbom")
   -o, --output string        Output file path (default: stdout)
