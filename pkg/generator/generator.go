@@ -578,6 +578,8 @@ func (g *Generator) writeOutput(doc *sbom.Document) error {
 
 func (g *Generator) getOutputFormat() formats.Format {
 	switch strings.ToLower(g.opts.OutputFormat) {
+	case "spdx3", "spdx-3.0", "spdx-3.0.1", "spdx30", "spdx30json":
+		return formats.SPDX3JSON
 	case "spdx23", "spdx-2.3", "spdx23json":
 		return formats.SPDX23JSON
 	case "spdx22", "spdx-2.2", "spdx22json":

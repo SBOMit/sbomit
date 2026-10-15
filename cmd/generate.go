@@ -34,6 +34,7 @@ files and network connections to packages by ecosystem, and outputs an SBOM in
 the specified format.
 
 Supported output formats:
+  - spdx3: SPDX 3.0 JSON-LD format
   - spdx23 (default): SPDX 2.3 JSON format
   - spdx22: SPDX 2.2 JSON format  
   - cdx14: CycloneDX 1.4 JSON format
@@ -55,7 +56,7 @@ func init() {
 	rootCmd.AddCommand(generateCmd)
 
 	generateCmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output file path (default: stdout)")
-	generateCmd.Flags().StringVarP(&outputFormat, "format", "f", "spdx23", "SBOM output format (supported: spdx23, spdx22, cdx14, cdx15)")
+	generateCmd.Flags().StringVarP(&outputFormat, "format", "f", "spdx23", "SBOM output format (supported: spdx3, spdx23, spdx22, cdx14, cdx15)")
 	generateCmd.Flags().StringVarP(&documentName, "name", "n", "sbomit-sbom", "Name for the SBOM document")
 	generateCmd.Flags().StringVarP(&documentVersion, "version", "v", "0.0.1", "Version for the SBOM document")
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
@@ -73,11 +74,12 @@ func runGenerate(attestationFile string) error {
 	}
 
 	validFormats := map[string]bool{
+		"spdx3": true, "spdx-3.0": true, "spdx-3.0.1": true, "spdx30": true,
 		"spdx23": true, "spdx22": true, "cdx14": true, "cdx15": true,
 		"spdx-2.3": true, "spdx-2.2": true, "cdx-1.4": true, "cdx-1.5": true,
 	}
 	if !validFormats[strings.ToLower(outputFormat)] {
-		return fmt.Errorf("invalid output format: %s (supported: spdx23, spdx22, cdx14, cdx15)", outputFormat)
+		return fmt.Errorf("invalid output format: %s (supported: spdx3, spdx23, spdx22, cdx14, cdx15)", outputFormat)
 	}
 
 	validCatalogs := map[string]bool{

@@ -255,3 +255,48 @@ func writeTestCatalog(t *testing.T, path string) {
 		t.Fatalf("write catalog SBOM: %v", err)
 	}
 }
+
+func TestRunGenerateSPDX3Output(t *testing.T) {
+	restore := snapshotGenerateGlobals()
+	defer restore()
+
+	tmpDir := t.TempDir()
+	target := filepath.Join(tmpDir, "sbom.spdx3.json")
+
+	outputPath = target
+	outputFormat = "spdx3"
+	documentName = "sbomit-spdx3"
+	documentVersion = "1.0.0"
+	authors = []string{"SBOMit Tester"}
+	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	catalog = ""
+	catalogFile = ""
+	projectDir = ""
+	skipPaths = nil
+	summaryFlag = false
+
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	if err != nil {
+		t.Fatalf("runGenerate returned error: %v", err)
+	}
+
+	if stdout != "" {
+		t.Fatalf("expected no stdout when writing to file, got: %s", stdout)
+	}
+	if !strings.Contains(stderr, "SBOM written to "+target) {
+		t.Fatalf("expected SBOM written confirmation on stderr, got: %s", stderr)
+	}
+
+	data, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatalf("failed to read generated SPDX 3.0 file: %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "@context") || !strings.Contains(content, "@graph") {
+		t.Fatalf("expected SPDX 3.0 JSON-LD content in generated file, got:\n%s", content)
+	}
+	if !strings.Contains(content, "https://spdx.org/rdf/3.0") {
+		t.Fatalf("expected SPDX 3.0 context URI, got:\n%s", content)
+	}
+}
