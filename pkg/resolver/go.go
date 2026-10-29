@@ -45,23 +45,30 @@ func (r *GoResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainin
 			Name:      module,
 			Version:   version,
 			Ecosystem: "golang",
-			PURL:      "pkg:golang/" + module + "@" + encodeGoPURLVersion(version),
-			FoundBy:   "attestation:go",
+			PURL:      GoPURL(module, version),
+			PkgMgr:    "go",
 		}, f)
 	}
 
-	packages, rest := g.finish(rankGoEvidence)
+	packages, rest := g.finish(rankGoEvidence, isGoModuleArtifact)
 	return packages, append(remainingFiles, rest...)
 }
 
-// rankGoEvidence prefers the module zip: it is the distributed artifact, so it
-// is the strongest evidence that the module was used.
+// isGoModuleArtifact reports whether a path is a module zip in the download cache.
+func isGoModuleArtifact(p string) bool {
+	return strings.HasSuffix(p, ".zip") && strings.Contains(p, "/pkg/mod/cache/download/")
+}
+
+// rankGoEvidence prefers the module zip, then .info/.mod.
 func rankGoEvidence(p string) int {
 	switch {
-	case strings.HasSuffix(p, ".zip"):
+	case isGoModuleArtifact(p):
 		return 3
 	case strings.HasSuffix(p, ".info"), strings.HasSuffix(p, ".mod"):
 		return 2
+	// .ziphash records the zip's hash; cite it only if nothing else exists.
+	case strings.HasSuffix(p, ".ziphash"):
+		return 0
 	case strings.Contains(p, "/pkg/mod/cache/download/"):
 		return 1
 	default:
@@ -112,14 +119,28 @@ func (r *GoResolver) isGoPath(p string) bool {
 	return strings.Contains(p, "/pkg/mod/")
 }
 
+// extractModuleVersion returns the module and version of a module-cache path.
+// Cache paths are tested first: moduleDirRe would misread
+// cache/download/<module>/@v/list as a module at version "v".
 func (r *GoResolver) extractModuleVersion(p string) (string, string, bool) {
-	if matches := r.moduleCacheRe.FindStringSubmatch(p); len(matches) == 4 {
-		return matches[1], matches[2], true
+	if strings.Contains(p, "/pkg/mod/cache/download/") {
+		if matches := r.moduleCacheRe.FindStringSubmatch(p); len(matches) == 4 {
+			return matches[1], matches[2], true
+		}
+		// list, lock and similar cache files identify no module.
+		return "", "", false
 	}
+
 	if matches := r.moduleDirRe.FindStringSubmatch(p); len(matches) == 3 {
 		return matches[1], matches[2], true
 	}
 	return "", "", false
+}
+
+// GoPURL is a Go module's PURL. Paths and downloads both use it so that
+// versions like v1.0.0+incompatible merge.
+func GoPURL(module, version string) string {
+	return "pkg:golang/" + module + "@" + encodeGoPURLVersion(version)
 }
 
 func encodeGoPURLVersion(version string) string {

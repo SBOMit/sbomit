@@ -1,0 +1,263 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "registry.yarnpkg.com"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "got (https://github.com/sindresorhus/got)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.yarnpkg.com:443/@actions%2fartifact/-/artifact-6.2.1.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "0a35cda3ce8b20d6b753f185abc9f54b0ab085ad11b9fca4fc2305bfa11ffb2a",
+                        "size": 55442
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.yarnpkg.com"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "got (https://github.com/sindresorhus/got)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.yarnpkg.com:443/@aashutoshrathi%2fword-wrap/-/word-wrap-1.2.6.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "67238108294ed04c0c038ef7a8279d93ddae273c3ad91122b60cac868a08f4f2",
+                        "size": 4124
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.yarnpkg.com"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "got (https://github.com/sindresorhus/got)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.yarnpkg.com:443/@actions%2fcache/-/cache-6.2.0.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "2694a1b3b3daceadeb0e1923a1bbb676f5f21d1c0a22fc814d121f2feb3ea1a8",
+                        "size": 61015
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.yarnpkg.com"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "got (https://github.com/sindresorhus/got)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.yarnpkg.com:443/@esbuild%2flinux-x64/-/linux-x64-0.28.0.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "e94bf1c7f44197b22cf6a787578eca9af805aa9624104488252de2a765c6a4f0",
+                        "size": 4717499
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/artifact.js": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/cache.js.map": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/generated/google/protobuf/timestamp.js": {
+                  "sha256": "7f59fa22f75a96a8fa74714928205b917033bbfd62827feda4aee395250e4296"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/.yarn/cache": {},
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@aashutoshrathi/word-wrap/LICENSE": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@aashutoshrathi/word-wrap/package.json": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js": {
+                  "sha256": "7f59fa22f75a96a8fa74714928205b917033bbfd62827feda4aee395250e4296"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.js.map": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/README.md": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/cache.d.ts": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/cache.js": {
+                  "sha256": "9251f6098ae62bd12a118c2abcf9d3c93c8546891ea3340f7153e9ce7b341a16"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@aashutoshrathi/word-wrap/index.js": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/LICENSE.md": {
+                  "sha256": "e7ceb6a6926e76a67981a440f4107d6152ac1fc2250c90a66460444518328b75"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/README.md": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/artifact.d.ts": {
+                  "sha256": "5f078809b4b81a043390dddd72414ab02fa1593c0187467fd2902d9b4e849275"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/artifact.js.map": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/generated/google/protobuf/wrappers.d.ts": {
+                  "sha256": "f71110109b0b93fc634ecc5bb587281a404f2a0973e25d4ec8b2b6dd7c5c23e0"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/generated": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/LICENSE.md": {
+                  "sha256": "e7ceb6a6926e76a67981a440f4107d6152ac1fc2250c90a66460444518328b75"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@aashutoshrathi/word-wrap/package.json": {
+                  "sha256": "77cfc64087f32925a3f25603aa6298522214c89b52101609ada01681ec1a4866"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/LICENSE.md": {
+                  "sha256": "e7ceb6a6926e76a67981a440f4107d6152ac1fc2250c90a66460444518328b75"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib": {},
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/cache.js": {
+                  "sha256": "9251f6098ae62bd12a118c2abcf9d3c93c8546891ea3340f7153e9ce7b341a16"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/cache.js.map": {
+                  "sha256": "8241e1efb7601703b90e490bd362770c9b75d7554ba6307de2df70fffb783903"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/.yarn/cache/@aashutoshrathi-word-wrap-npm-1.2.6-5b1d95e487-6eebd12a5c.zip": {
+                  "sha256": "3e447e959363d2e33ef7378e3c0f73e5723c9fbe851591e0b23eb19b4682cd77"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/.yarn/cache/@actions-artifact-npm-6.2.1-e8107c87e7-1fad9b079e.zip": {
+                  "sha256": "36902b1bc894cbdbe443130e978ab73e0539c9a7107db4ede1b8602b560dad96"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/.yarn/cache/@actions-cache-npm-6.2.0-687bb8a5bc-b2b3d219d3.zip": {
+                  "sha256": "b7786bc4e4bb905d361abad27536b355f9bf95fd98f94e5260b26c09972f9ce1"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/docker-login-action/.yarn/cache/.gitignore": {
+                  "sha256": "29c84098160fd5c15dc7be6b644fefd9668807f4bc7392e1bf3a1bf83e8b49ac"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@aashutoshrathi/word-wrap/README.md": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@aashutoshrathi/word-wrap/index.d.ts": {
+                  "sha256": "2fca8fbc9d4d28c92b17f4473508397d9a4fea19674e9156f67c861f89b53806"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/artifact/lib/generated/google/protobuf/timestamp.d.ts": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/LICENSE.md": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/projects/js/docker-login-action/node_modules/@actions/cache/lib/generated/google/protobuf/timestamp.d.ts": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

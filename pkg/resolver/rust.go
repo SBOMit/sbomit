@@ -8,14 +8,18 @@ import (
 )
 
 type RustResolver struct {
+	// Requires a trailing "/" so filenames (UTF-8-demo.txt) don't match.
 	crateDirWithVerRe *regexp.Regexp
 	crateFileWithVer  *regexp.Regexp
+	// registry/src/<index>/<name>-<version>/
+	registrySrcRe *regexp.Regexp
 }
 
 func NewRustResolver() *RustResolver {
 	return &RustResolver{
-		crateDirWithVerRe: regexp.MustCompile(`([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)(?:/|$)`),
+		crateDirWithVerRe: regexp.MustCompile(`([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)/`),
 		crateFileWithVer:  regexp.MustCompile(`([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)\.crate$`),
+		registrySrcRe:     regexp.MustCompile(`/registry/src/[^/]+/([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)/`),
 	}
 }
 
@@ -23,9 +27,16 @@ func (r *RustResolver) Name() string {
 	return "rust"
 }
 
+// crate is one version of one crate; a registry often holds several versions.
+type crate struct {
+	name    string
+	version string
+}
+
+func (c crate) key() string { return c.name + "@" + c.version }
+
 func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
-	chosenByName := map[string]string{}
-	candidates := map[string][]FileInfo{}
+	candidates := map[crate][]FileInfo{}
 
 	for _, f := range files {
 		pp := path.Clean(strings.TrimSpace(f.Path))
@@ -38,83 +49,56 @@ func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remain
 			continue
 		}
 
-		if m := r.crateFileWithVer.FindStringSubmatch(pp); len(m) == 3 {
-			if r.isCargoRegistryPath(pp) {
-				name := NormalizeRustCrateName(m[1])
-				chosenByName[name] = m[2]
-				candidates[name] = append(candidates[name], f)
-			}
-			continue
-		}
-
-		if name, version, ok := r.findLastCrateDirWithVer(pp); ok {
-			if r.isCargoRegistryPath(pp) || strings.Contains(pp, "/crates/") || strings.Contains(pp, "/registry/src/") {
-				name = NormalizeRustCrateName(name)
-				chosenByName[name] = version
-				candidates[name] = append(candidates[name], f)
-			}
-			continue
+		if c, ok := r.identify(pp); ok {
+			candidates[c] = append(candidates[c], f)
 		}
 	}
 
-	for _, f := range files {
-		pp := path.Clean(strings.TrimSpace(f.Path))
+	// Pass every path on: crate files are assigned to their crate later, and
+	// FileFilter alone decides what is noise.
+	remainingFiles = append(remainingFiles, files...)
 
-		if !r.isRustPath(pp) {
-			remainingFiles = append(remainingFiles, f)
+	// Sorted for stable output.
+	keys := make([]crate, 0, len(candidates))
+	for c := range candidates {
+		if c.name == "" || c.version == "" {
 			continue
 		}
-
-		if r.isRustIgnoredPath(pp) {
-			continue
-		}
-
-		if r.isCompiledRustArtifact(pp) {
-			if r.isOwnedByKnownCrate(pp, chosenByName) {
-				continue
-			}
-		}
-
-		remainingFiles = append(remainingFiles, f)
+		keys = append(keys, c)
 	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i].key() < keys[j].key() })
 
-	// Sorted, because map iteration order is random and package order would
-	// otherwise differ between runs on identical input.
-	names := make([]string, 0, len(chosenByName))
-	for name := range chosenByName {
-		names = append(names, name)
-	}
-	sort.Strings(names)
+	for _, c := range keys {
+		// Other files are already in remainingFiles.
+		evidence, _ := pickEvidence(candidates[c], rankRustEvidence)
 
-	for _, name := range names {
-		version := chosenByName[name]
-		if name == "" || version == "" {
-			continue
-		}
-
-		// Non-evidence files are already carried by the second pass above, so
-		// only the citation is taken here.
-		evidence, _ := pickEvidence(candidates[name], rankRustEvidence)
-
-		packages = append(packages, PackageInfo{
-			Name:      name,
-			Version:   version,
+		pkg := PackageInfo{
+			Name:      c.name,
+			Version:   c.version,
 			Ecosystem: "cargo",
-			PURL:      "pkg:cargo/" + strings.ToLower(name) + "@" + version,
-			FoundBy:   "attestation:rust",
+			PURL:      "pkg:cargo/" + c.name + "@" + c.version,
+			PkgMgr:    "cargo",
 			Locations: []string{evidence.Path},
-		})
+			Artifact:  artifactFile(candidates[c], isCrateArtifact),
+		}
+
+		packages = append(packages, pkg)
 	}
 
 	return packages, remainingFiles
 }
 
-// rankRustEvidence prefers the .crate archive: it is the artifact crates.io
-// publishes. Cargo.toml declares the crate, so it comes next.
+// isCrateArtifact reports whether a path is a .crate in the registry cache.
+func isCrateArtifact(p string) bool {
+	return strings.HasSuffix(strings.ToLower(p), ".crate") &&
+		strings.Contains(p, "/registry/cache/")
+}
+
+// rankRustEvidence prefers the .crate, then Cargo.toml.
 func rankRustEvidence(p string) int {
 	base := strings.ToLower(path.Base(p))
 	switch {
-	case strings.HasSuffix(base, ".crate"):
+	case isCrateArtifact(p):
 		return 3
 	case base == "cargo.toml":
 		return 2
@@ -175,43 +159,37 @@ func (r *RustResolver) isRustPath(p string) bool {
 		strings.Contains(p, "Cargo.lock")
 }
 
-func (r *RustResolver) isCargoRegistryPath(p string) bool {
-	return strings.Contains(p, "/registry/cache/") ||
-		strings.Contains(p, "/registry/src/") ||
-		strings.Contains(p, "index.crates.io") ||
-		strings.Contains(p, ".crate")
-}
-
+// isRustIgnoredPath reports build output, which identifies no crate.
 func (r *RustResolver) isRustIgnoredPath(p string) bool {
 	return strings.Contains(p, "/.fingerprint/") || strings.Contains(p, "/target/")
 }
 
-func (r *RustResolver) isCompiledRustArtifact(p string) bool {
-	return strings.HasSuffix(p, ".d") ||
-		strings.HasSuffix(p, ".rlib") ||
-		strings.HasSuffix(p, ".rmeta") ||
-		strings.HasSuffix(p, ".so")
-}
+// identify returns the crate a registry path belongs to, trying the most
+// specific path pattern first. The index directory (index.crates.io-<hash>) looks
+// like a crate directory, so patterns are anchored on the registry subtree.
+func (r *RustResolver) identify(p string) (crate, bool) {
+	if strings.Contains(p, "/registry/cache/") {
+		if m := r.crateFileWithVer.FindStringSubmatch(p); len(m) == 3 {
+			return crate{NormalizeRustCrateName(m[1]), m[2]}, true
+		}
+		return crate{}, false
+	}
 
-func (r *RustResolver) isOwnedByKnownCrate(p string, chosenByName map[string]string) bool {
-	for name := range chosenByName {
-		if strings.HasPrefix(p, name+"/") || strings.Contains(p, "/"+name+"/") || strings.Contains(p, "/"+name+"-") {
-			return true
+	if m := r.registrySrcRe.FindStringSubmatch(p); len(m) == 3 {
+		return crate{NormalizeRustCrateName(m[1]), m[2]}, true
+	}
+
+	// Vendored crates: fall back to the last versioned directory.
+	if strings.Contains(p, "/crates/") {
+		if all := r.crateDirWithVerRe.FindAllStringSubmatch(p, -1); len(all) > 0 {
+			last := all[len(all)-1]
+			if len(last) == 3 {
+				return crate{NormalizeRustCrateName(last[1]), last[2]}, true
+			}
 		}
 	}
-	return false
-}
 
-func (r *RustResolver) findLastCrateDirWithVer(p string) (string, string, bool) {
-	allMatches := r.crateDirWithVerRe.FindAllStringSubmatch(p, -1)
-	if len(allMatches) == 0 {
-		return "", "", false
-	}
-	last := allMatches[len(allMatches)-1]
-	if len(last) != 3 {
-		return "", "", false
-	}
-	return last[1], last[2], true
+	return crate{}, false
 }
 
 // NormalizeRustCrateName lowercases and trims a Cargo crate name.

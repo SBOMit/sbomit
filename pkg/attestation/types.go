@@ -7,10 +7,11 @@ type TypedAttestation struct {
 	Data map[string]interface{} `json:"data"`
 }
 
-// FileInfo represents information about a file extracted from attestations
+// FileInfo is an attested path and every distinct digest recorded for it
+// (possibly none, possibly several per algorithm).
 type FileInfo struct {
-	Path   string            `json:"path"`
-	Hashes map[string]string `json:"hashes"`
+	Path    string   `json:"path"`
+	Digests []Digest `json:"digests,omitempty"`
 }
 
 // AttestationCollection represents a witness attestation collection

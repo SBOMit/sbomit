@@ -133,6 +133,9 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 		return nil, fmt.Errorf("failed to resolve attestations: %w", err)
 	}
 
+	// The CLI's package policy; see policy.go.
+	result = selectPackages(result)
+
 	attDoc := g.createDocument(result)
 
 	if baseDoc != nil {
@@ -450,14 +453,31 @@ func (g *Generator) createFileNode(file resolve.File) *sbom.Node {
 		Hashes: make(map[int32]string),
 	}
 
-	for _, d := range file.Digests {
-		hashAlgo := mapHashAlgorithm(d.Algorithm)
-		if hashAlgo != sbom.HashAlgorithm_UNKNOWN {
-			node.Hashes[int32(hashAlgo)] = d.Value
-		}
+	for algo, value := range singleValuedHashes(file.Digests) {
+		node.Hashes[algo] = value
 	}
 
 	return node
+}
+
+// singleValuedHashes maps digests to an SBOM node's one hash per algorithm,
+// omitting an algorithm with conflicting values.
+func singleValuedHashes(digests []resolve.Digest) map[int32]string {
+	out := make(map[int32]string, len(digests))
+	conflicted := make(map[int32]bool)
+	for _, d := range digests {
+		algo := int32(mapHashAlgorithm(d.Algorithm))
+		if algo == int32(sbom.HashAlgorithm_UNKNOWN) || conflicted[algo] {
+			continue
+		}
+		if prev, seen := out[algo]; seen && prev != d.Value {
+			delete(out, algo)
+			conflicted[algo] = true
+			continue
+		}
+		out[algo] = d.Value
+	}
+	return out
 }
 
 // nopWriteCloser wraps os.File to implement io.WriteCloser

@@ -32,6 +32,14 @@ This command parses witness attestations, extracts file information from
 material, command-run, and product attestations, resolves files to packages by
 ecosystem, and outputs an SBOM in the specified format.
 
+A network-trace attestation, where present, adds the requests the build made.
+Every package with a path showing it installed is listed. A package seen only
+in a download is listed only where the package manager's install paths could
+never have shown it.
+
+A package checksum is emitted only where it is the sha256 the registry
+publishes for the artifact: PyPI, crates.io and conda channels.
+
 Supported output formats:
   - spdx23 (default): SPDX 2.3 JSON format
   - spdx22: SPDX 2.2 JSON format  
@@ -58,7 +66,9 @@ func init() {
 	generateCmd.Flags().StringVarP(&documentName, "name", "n", "sbomit-sbom", "Name for the SBOM document")
 	generateCmd.Flags().StringVarP(&documentVersion, "version", "v", "0.0.1", "Version for the SBOM document")
 	generateCmd.Flags().StringSliceVar(&authors, "author", []string{}, "Document authors (can be specified multiple times)")
-	generateCmd.Flags().StringSliceVar(&attestationTypes, "types", []string{"material", "command-run", "product"}, "Attestation types to parse (comma-separated).")
+	generateCmd.Flags().StringSliceVar(&attestationTypes, "types",
+		[]string{"material", "command-run", "product", "network-trace"},
+		"Attestation types to parse (comma-separated).")
 	generateCmd.Flags().StringVarP(&catalog, "catalog", "c", "", "Cataloger to run before processing attestations (supported: syft, trivy)")
 	generateCmd.Flags().StringVar(&catalogFile, "catalog-file", "", "Existing SBOM catalog file to merge with attestation-derived packages")
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")

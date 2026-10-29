@@ -19,7 +19,7 @@ vet:
 	$(GO) vet ./...
 
 generate-sample:
-	$(GO) run . generate test/sample-attestation.json
+	$(GO) run . generate test/python-in-toto.json
 
 clean:
 	$(RM) $(BINARY)

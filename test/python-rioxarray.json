@@ -1,0 +1,518 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "conda.anaconda.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "conda/26.7.2 requests/2.34.2 CPython/3.14.7 Linux/7.0.0-1013-gcp ubuntu/24.04.5 glibc/2.39 solver/libmamba conda-libmamba-solver/26.7.0 libmambapy/2.9.0"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://conda.anaconda.org:443/conda-forge/noarch/setuptools-84.0.0-pyh332efcf_0.conda"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "9e200ee5f9ff19a4d94e4b51c4856d53dec849f91032f345cf0c6bc3d51a7183",
+                        "size": 524488
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "conda.anaconda.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "conda/26.7.2 requests/2.34.2 CPython/3.14.7 Linux/7.0.0-1013-gcp ubuntu/24.04.5 glibc/2.39 solver/libmamba conda-libmamba-solver/26.7.0 libmambapy/2.9.0"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://conda.anaconda.org:443/conda-forge/linux-64/msgpack-python-1.2.3-py312h9be0db6_0.conda"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "46b34715512392aec0478da2b973f88d9340493f82cf7a610918b049b15e31b8",
+                        "size": 121323
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "conda.anaconda.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "conda/26.7.2 requests/2.34.2 CPython/3.14.7 Linux/7.0.0-1013-gcp ubuntu/24.04.5 glibc/2.39 solver/libmamba conda-libmamba-solver/26.7.0 libmambapy/2.9.0"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://conda.anaconda.org:443/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "1dd3fffd892081df9726d7eb7e0dea6198962ba775bd88842135a4ddb4deb3c9",
+                        "size": 28948
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "conda.anaconda.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "conda/26.7.2 requests/2.34.2 CPython/3.14.7 Linux/7.0.0-1013-gcp ubuntu/24.04.5 glibc/2.39 solver/libmamba conda-libmamba-solver/26.7.0 libmambapy/2.9.0"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://conda.anaconda.org:443/conda-forge/noarch/affine-3.0.1-pyhecae5ae_0.conda"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "8801cd5b4e0f0203b7a18e8def15929f3413e93e2da88d5b918b735454106f85",
+                        "size": 22619
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "conda.anaconda.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "conda/26.7.2 requests/2.34.2 CPython/3.14.7 Linux/7.0.0-1013-gcp ubuntu/24.04.5 glibc/2.39 solver/libmamba conda-libmamba-solver/26.7.0 libmambapy/2.9.0"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://conda.anaconda.org:443/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "2a7204314663eeda5dec482a956f0e2eaf289bd5b9953eaaaad0e81aa64638f2",
+                        "size": 8144
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "files.pythonhosted.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pip/26.2.1 {\"ci\":null,\"cpu\":\"x86_64\",\"distro\":{\"id\":\"noble\",\"libc\":{\"lib\":\"glibc\",\"version\":\"2.39\"},\"name\":\"Ubuntu\",\"version\":\"24.04\"},\"implementation\":{\"name\":\"CPython\",\"version\":\"3.12.14\"},\"installer\":{\"name\":\"pip\",\"version\":\"26.2.1\"},\"openssl_version\":\"OpenSSL 3.6.4 25 Aug 2026\",\"python\":\"3.12.14\",\"setuptools_version\":\"84.0.0\",\"system\":{\"name\":\"Linux\",\"release\":\"7.0.0-1013-gcp\"}}"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://files.pythonhosted.org:443/packages/5f/ed/035354de8fbc1c1350f5b7f66361995f187d89675622eb63016bf7261dd5/pyproj-3.8.0-cp312-cp312-manylinux_2_28_x86_64.whl.metadata"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "836b51705e613c29ae7829b61a37789b226cf0f8576cc49e86aaad8d9aaf5967",
+                        "size": 40573
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "files.pythonhosted.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pip/26.2.1 {\"ci\":null,\"cpu\":\"x86_64\",\"distro\":{\"id\":\"noble\",\"libc\":{\"lib\":\"glibc\",\"version\":\"2.39\"},\"name\":\"Ubuntu\",\"version\":\"24.04\"},\"implementation\":{\"name\":\"CPython\",\"version\":\"3.12.14\"},\"installer\":{\"name\":\"pip\",\"version\":\"26.2.1\"},\"openssl_version\":\"OpenSSL 3.6.4 25 Aug 2026\",\"python\":\"3.12.14\",\"setuptools_version\":\"84.0.0\",\"system\":{\"name\":\"Linux\",\"release\":\"7.0.0-1013-gcp\"}}"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://files.pythonhosted.org:443/packages/5f/ed/035354de8fbc1c1350f5b7f66361995f187d89675622eb63016bf7261dd5/pyproj-3.8.0-cp312-cp312-manylinux_2_28_x86_64.whl"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "6b34cec6bdd66b721980c003cc2a0fce0cab7949444ad037fc2a7ecb6f3b996c",
+                        "size": 10037552
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray": {},
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/index.json": {
+                  "sha256": "c7b090ffa381ebebaa466033bbf2ba37b7639c9b520e5594090a80fae61ee644"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/paths.json": {
+                  "sha256": "e9f980c5d7fa6a8a7e39f8c3877d78e34dcac51ed053eb635b86868dc49099ef"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/index.json": {
+                  "sha256": "be96d24f10b141fbceacdbd69bf390323785ead009f30caefed02ef9b5e8ab5e"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/link.json": {
+                  "sha256": "d119b548ff40ccae84e639532bb10fbe20122efbc8a4f17112a2ab305155c559"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/paths.json": {
+                  "sha256": "a0731dccf9e110a03d184ba01467cabe068391cdab188c49a1e7515a17827183"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/index.json": {
+                  "sha256": "43948b4b854b03f49138cc1e378f21ced4f207e4571291eff0ac1eb72675b18c"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/link.json": {
+                  "sha256": "1db69598ba1c6201e9c429a97f37cfcfe7b052622effd442b9a4b6d88e8e9e99"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/paths.json": {
+                  "sha256": "55c6d44bb5d7b491606ab719056e52729b6e558b1c068edb5fbad9c4292943f4"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/cache": {},
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/index.json": {
+                  "sha256": "cf7765afc941ef7b58aa69b38fbd03e79ad6bca60573ab78fa22098cee6572fb"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/paths.json": {
+                  "sha256": "f13dcdfeee20c37080b084da391276b2753ca527f18d2d0df13ffca994da591d"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/index.json": {
+                  "sha256": "a6a71c30b0cc263da433abb7cc5b795fb94c136e76e33b29c35c27ac6c5d81d7"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/link.json": {
+                  "sha256": "1db69598ba1c6201e9c429a97f37cfcfe7b052622effd442b9a4b6d88e8e9e99"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/paths.json": {
+                  "sha256": "a968455e4ebaf7b3b0bad8245ad168a0a3e4e8304c9fbb408d1adb10b0615654"
+                },
+                "/home/jake/miniforge3/conda-meta/httpx-0.28.1-pyhd8ed1ab_0.json": {
+                  "sha256": "d138b6cfe113c7fdeb0374210b08cbc76b86d733e2843398a76b40f9567cbbf0"
+                },
+                "/home/jake/miniforge3/conda-meta/python-3.14.7-hcd007b5_106_cp314.json": {
+                  "sha256": "583593ff9fb383a441adbf7752e4eb9dd0270b72c31ab873538b9d192f58cd15"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/bin/conda": {
+                  "sha256": "853827e7f805b7759cfb1c22d0b31eb081c1d73e7b88eda3ddde332302aab763"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/bin/conda": {
+                  "sha256": "853827e7f805b7759cfb1c22d0b31eb081c1d73e7b88eda3ddde332302aab763"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/cache": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu.conda": {
+                  "sha256": "1dd3fffd892081df9726d7eb7e0dea6198962ba775bd88842135a4ddb4deb3c9"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/about.json": {
+                  "sha256": "4713f0b93b76916076d2e63b9cea362635a13a5e67de9a54897e485e20fc2b70"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/files": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/git": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/hash_input.json": {
+                  "sha256": "ac6e1220853d89f8b7830e9c580f8f5d03bee11c6ef18f0298063e3b34b57fdc"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/index.json": {
+                  "sha256": "c7b090ffa381ebebaa466033bbf2ba37b7639c9b520e5594090a80fae61ee644"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/licenses/LICENSE": {
+                  "sha256": "344c439ba60e5db75f0c894fdd22e3445db089b3bd936806bdf128c0016c12c7"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/paths.json": {
+                  "sha256": "e9f980c5d7fa6a8a7e39f8c3877d78e34dcac51ed053eb635b86868dc49099ef"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu/info/recipe/conda_build_config.yaml": {
+                  "sha256": "ae9a6be7f5213284f694d9f0d7470e62b834d0d8f5d14b664a7accf682e63f93"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3.conda": {
+                  "sha256": "2a7204314663eeda5dec482a956f0e2eaf289bd5b9953eaaaad0e81aa64638f2"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/about.json": {
+                  "sha256": "d706cfa1f1f11460d7c68f920a1f65326ee2687aa344643a3bfecd0628be495a"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/files": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/git": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/hash_input.json": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/index.json": {
+                  "sha256": "be96d24f10b141fbceacdbd69bf390323785ead009f30caefed02ef9b5e8ab5e"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/licenses/LICENSE.txt": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/link.json": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3/info/paths.json": {
+                  "sha256": "a0731dccf9e110a03d184ba01467cabe068391cdab188c49a1e7515a17827183"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0.conda": {
+                  "sha256": "9e200ee5f9ff19a4d94e4b51c4856d53dec849f91032f345cf0c6bc3d51a7183"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/about.json": {
+                  "sha256": "21c78e9a85d7cf16d3082e906532b44b6f79ff8ccd1a98fb217a4718b05c8d65"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/files": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/git": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/hash_input.json": {
+                  "sha256": "cb78fd3d9028162446bc1911815d79a690acf25df4af1174b3a6ecb9b836899e"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/index.json": {
+                  "sha256": "a6a71c30b0cc263da433abb7cc5b795fb94c136e76e33b29c35c27ac6c5d81d7"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/licenses/LICENSE": {
+                  "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/link.json": {
+                  "sha256": "1db69598ba1c6201e9c429a97f37cfcfe7b052622effd442b9a4b6d88e8e9e99"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0/info/paths.json": {
+                  "sha256": "a968455e4ebaf7b3b0bad8245ad168a0a3e4e8304c9fbb408d1adb10b0615654"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/bin/conda": {
+                  "sha256": "853827e7f805b7759cfb1c22d0b31eb081c1d73e7b88eda3ddde332302aab763"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0.conda.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0.conda.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/INSTALLER": {
+                  "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/METADATA": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/RECORD": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/WHEEL": {
+                  "sha256": "1af6f27b74ad55a23778069797ca03074c02fedaa76c11f1963f3920804df623"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/entry_points.txt": {
+                  "sha256": "f2daab7ae22ad145c846c30291634e92cd31e84818536967c95f6694f3b3b3b9"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/licenses/LICENSE": {
+                  "sha256": "a652687151814d4c4715445912fcb49e7e58f5b248d47a1a88b859a8815e0822"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/licenses/LICENSE_proj": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj-3.8.0.dist-info/top_level.txt": {
+                  "sha256": "d4337e6e4f28c268b5c035332fbbc72a0a9d533d0387d38eb05338a2ea5e65bb"
+                },
+                "/home/jake/miniforge3/envs/rioxarray/lib/python3.12/site-packages/pyproj/__init__.py": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/tmp/pip-unpack-oujm4vrs/pyproj-3.8.0-cp312-cp312-manylinux_2_28_x86_64.whl": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_python_abi3_support-1.0-hd8ed1ab_3.conda.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0.conda": {
+                  "sha256": "46b34715512392aec0478da2b973f88d9340493f82cf7a610918b049b15e31b8"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/about.json": {
+                  "sha256": "5fbff94f3f3f42fbb7dcd4e997608cab8ed87783592a7a0a5d5d935a281dbc9c"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/hash_input.json": {
+                  "sha256": "8d99e71457d8da7b32ed966482fbb5a9be59218e038595049cc99afef05a242c"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/index.json": {
+                  "sha256": "cf7765afc941ef7b58aa69b38fbd03e79ad6bca60573ab78fa22098cee6572fb"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/licenses/COPYING": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/paths.json": {
+                  "sha256": "f13dcdfeee20c37080b084da391276b2753ca527f18d2d0df13ffca994da591d"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/recipe/recipe-scripts-license.txt": {
+                  "sha256": "b76585ad68860b271fc4c5a346444e4a70cacd48a3fd688cb2e8dd18d5935cd1"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/recipe/recipe.yaml": {
+                  "sha256": "0a16242d30212d4ced3e73bdc046c4082a1438223ec5210c51a407832fcc9882"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/msgpack-python-1.2.3-py312h9be0db6_0/info/recipe/rendered_recipe.yaml": {
+                  "sha256": "f285be71c5d8fe71b6564a36b5b45a8a4056d2f0bbdb2505c161958c366cc50b"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/_openmp_mutex-4.5-20_gnu.conda.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/setuptools-84.0.0-pyh332efcf_0.conda.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/bin/conda": {
+                  "sha256": "853827e7f805b7759cfb1c22d0b31eb081c1d73e7b88eda3ddde332302aab763"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/bin/conda": {
+                  "sha256": "853827e7f805b7759cfb1c22d0b31eb081c1d73e7b88eda3ddde332302aab763"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/miniforge3/bin/conda": {
+                  "sha256": "853827e7f805b7759cfb1c22d0b31eb081c1d73e7b88eda3ddde332302aab763"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0.conda": {
+                  "sha256": "8801cd5b4e0f0203b7a18e8def15929f3413e93e2da88d5b918b735454106f85"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/about.json": {
+                  "sha256": "b94249c6f41f778de57bb063515faececd8751f6fe4b00cdab63e72be8ce3590"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/files": {
+                  "sha256": "a420964f7095f2d3ba7482ad0d584057103dbd335d2aff56f7d227488eb945bc"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/git": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/hash_input.json": {
+                  "sha256": "78cc8d9add91dff67ed5d7f05cbe684228ce0a39443c91132935bde2e7375b32"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/index.json": {
+                  "sha256": "43948b4b854b03f49138cc1e378f21ced4f207e4571291eff0ac1eb72675b18c"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/licenses/LICENSE.txt": {
+                  "sha256": "fc3636b54ff4072cf4b013ed9893c171ed25f88dae2b32722050499c1878cd6e"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/link.json": {
+                  "sha256": "1db69598ba1c6201e9c429a97f37cfcfe7b052622effd442b9a4b6d88e8e9e99"
+                },
+                "/home/jake/generate_att/conda-pkgs/rioxarray/affine-3.0.1-pyhecae5ae_0/info/paths.json": {
+                  "sha256": "55c6d44bb5d7b491606ab719056e52729b6e558b1c068edb5fbad9c4292943f4"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

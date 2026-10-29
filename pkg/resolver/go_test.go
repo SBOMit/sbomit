@@ -10,16 +10,12 @@ func TestGoResolverResolvesModuleCacheDownloadFiles(t *testing.T) {
 
 	packages, remaining := r.Resolve([]FileInfo{
 		{
-			Path: "/home/user/go/pkg/mod/cache/download/github.com/!burnt!sushi/toml/@v/v1.6.0.mod",
-			Hashes: map[string]string{
-				"sha256": "abc123",
-			},
+			Path:    "/home/user/go/pkg/mod/cache/download/github.com/!burnt!sushi/toml/@v/v1.6.0.mod",
+			Digests: []Digest{{Algorithm: "sha256", Value: "abc123"}},
 		},
 		{
-			Path: "/home/user/go/pkg/mod/cache/download/github.com/!burnt!sushi/toml/@v/v1.6.0.ziphash",
-			Hashes: map[string]string{
-				"sha256": "def456",
-			},
+			Path:    "/home/user/go/pkg/mod/cache/download/github.com/!burnt!sushi/toml/@v/v1.6.0.ziphash",
+			Digests: []Digest{{Algorithm: "sha256", Value: "def456"}},
 		},
 		{Path: "/repo/main.go"},
 	})
@@ -46,8 +42,8 @@ func TestGoResolverResolvesModuleCacheDownloadFiles(t *testing.T) {
 	if pkg.Name != "github.com/BurntSushi/toml" {
 		t.Fatalf("unexpected package name: %s", pkg.Name)
 	}
-	if len(pkg.Hashes) != 0 {
-		t.Fatalf("cache file hashes should not be promoted to package hashes: %#v", pkg.Hashes)
+	if pkg.Artifact != nil {
+		t.Fatalf("cache file hashes should not be promoted to package hashes: %#v", pkg.Artifact)
 	}
 }
 
@@ -128,5 +124,82 @@ func TestGoResolverEscapesPURLVersion(t *testing.T) {
 	}
 	if packages[0].PURL != "pkg:golang/github.com/peterbourgon/diskv@v2.0.1%2Bincompatible" {
 		t.Fatalf("unexpected PURL: %s", packages[0].PURL)
+	}
+}
+
+// cache/download/<module>/@v/list must not be read as a module at version "v".
+func TestGoResolverIgnoresNonArtifactCachePaths(t *testing.T) {
+	r := NewGoResolver()
+
+	packages, remaining := r.Resolve([]FileInfo{
+		{Path: "/home/user/go/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.zip"},
+		{Path: "/home/user/go/pkg/mod/cache/download/github.com/lib/pq/@v/list"},
+		{Path: "/home/user/go/pkg/mod/cache/download/github.com/lib/pq/@v/lock"},
+		{Path: "/home/user/go/pkg/mod/cache/download/sumdb/sum.golang.org/lookup/github.com/lib/pq@v1.11.1"},
+	})
+
+	if len(packages) != 1 {
+		t.Fatalf("expected one package, got %d: %v", len(packages), goPURLs(packages))
+	}
+	if got := packages[0].PURL; got != "pkg:golang/github.com/lib/pq@v1.11.1" {
+		t.Fatalf("unexpected PURL: %s", got)
+	}
+
+	// list, lock and the sumdb entry identify no module, so they flow on.
+	if len(remaining) != 3 {
+		t.Fatalf("expected three remaining files, got %d", len(remaining))
+	}
+}
+
+func TestGoResolverResolvesExtractedModuleDir(t *testing.T) {
+	r := NewGoResolver()
+
+	packages, _ := r.Resolve([]FileInfo{
+		{Path: "/home/user/go/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/wildcard.go"},
+	})
+
+	if len(packages) != 1 {
+		t.Fatalf("expected one package, got %d", len(packages))
+	}
+	// Go escapes uppercase letters in module paths as !<lowercase>.
+	if got := packages[0].PURL; got != "pkg:golang/github.com/IGLOU-EU/go-wildcard@v1.0.3" {
+		t.Fatalf("unexpected PURL: %s", got)
+	}
+}
+
+func goPURLs(packages []PackageInfo) []string {
+	out := make([]string, 0, len(packages))
+	for _, p := range packages {
+		out = append(out, p.PURL)
+	}
+	return out
+}
+
+// The module zip is the artifact; an extracted copy has none.
+func TestGoResolverTakesPackageDigestFromModuleZip(t *testing.T) {
+	const cache = "/home/user/go/pkg/mod/cache/download/github.com/lib/pq/@v"
+
+	fromZip, _ := NewGoResolver().Resolve([]FileInfo{
+		{Path: cache + "/v1.11.1.zip", Digests: []Digest{{Algorithm: "sha256", Value: "archive-digest"}}},
+		{Path: cache + "/v1.11.1.mod", Digests: []Digest{{Algorithm: "sha256", Value: "mod-digest"}}},
+	})
+	if len(fromZip) != 1 {
+		t.Fatalf("expected one package, got %d", len(fromZip))
+	}
+	if got := artifactDigest(fromZip[0], "sha256"); got != "archive-digest" {
+		t.Fatalf("expected the zip digest, got %q", got)
+	}
+
+	fromExtracted, _ := NewGoResolver().Resolve([]FileInfo{
+		{
+			Path:    "/home/user/go/pkg/mod/github.com/lib/pq@v1.11.1/conn.go",
+			Digests: []Digest{{Algorithm: "sha256", Value: "member-digest"}},
+		},
+	})
+	if len(fromExtracted) != 1 {
+		t.Fatalf("expected one package, got %d", len(fromExtracted))
+	}
+	if fromExtracted[0].Artifact != nil {
+		t.Fatalf("expected no package digest, got %v", fromExtracted[0].Artifact)
 	}
 }

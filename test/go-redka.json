@@ -1,0 +1,388 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/lib/pq/@v/v1.11.1.zip"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "029c5fbdb5e866d5dbced96e2189c855014bd31c2a2103787644dfaee997c4c7",
+                        "size": 165523
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/mattn/go-sqlite3/@v/v1.14.33.zip"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "70ab253e74cb68d53df4f6410ea19e4ee422d618984b7371b2ab05674e33e927",
+                        "size": 2779228
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/lib/pq/@v/v1.11.1.mod"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "95aa0cfe3f3fa5821805cccfd885595eb862e91a3beb802da86dc15714c1d229",
+                        "size": 34
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/tidwall/btree/@v/v1.7.0.zip"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "4a6619eb936c836841702933a9d66f27abe83b7ffb541de44d12db4aa3a809d5",
+                        "size": 36457
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/tidwall/btree/@v/v1.7.0.mod"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "7fe24409374877ad49540f5e99d6fbc8b8b0fa5731c1c791dcab4722326d73c6",
+                        "size": 41
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/mattn/go-sqlite3/@v/v1.14.33.mod"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "bc9235ee6e4e60243f1e7dcacf0caa4d480afcdf06ed78e481fd127e9e3119df",
+                        "size": 146
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/lib/pq/@v/v1.11.1.info"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "ec4c84c81aaac577b66925ace62ad4f5508e2605eaa3be9bbee2de281a23550a",
+                        "size": 184
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/mattn/go-sqlite3/@v/v1.14.33.info"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "0007e6f0e960399c491742bfdac8c29363bbc3c2e1732e2e3b4f0d81d2c94572",
+                        "size": 196
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/tidwall/btree/@v/v1.7.0.info"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "36ee1efbbc410a49435709aca818d127dd8c3a5eeab1639a5f2096e18f1e7666",
+                        "size": 189
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.ziphash": {
+                  "sha256": "4798032c4b2d6f3f8fce4913773cb9ee02a27da50089272ab63192c598cae09a"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/mattn/go-sqlite3/@v/v1.14.33.ziphash": {
+                  "sha256": "6c63688c02b87013217dc710401ebb44c07d79f0e1982eabd7861187064ca53b"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/tidwall/btree/@v/v1.7.0.ziphash": {
+                  "sha256": "cae8988f4e9823924923ce2fe7aef8f8a6ed0a30ea7d805a63dcb8533b79abed"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github/workflows": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.zip": {
+                  "sha256": "029c5fbdb5e866d5dbced96e2189c855014bd31c2a2103787644dfaee997c4c7"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.gitattributes": {
+                  "sha256": "1d5d71dcc6ccd28ab46a335349ecc74742ca4b81f4fcad212f8d134f70f1f13e"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github/FUNDING.yml": {
+                  "sha256": "11695bc7fd9f300a5238ec4f7db42d9a8bc7f71d85574f09d10c821f4ab39668"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github/workflows/staticcheck.yml": {
+                  "sha256": "2156dfffc8f351cac3879e45ecfff1254ad128303a8bcab87d389cdfb9a1816f"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github/workflows/test.yml": {
+                  "sha256": "ca79fbbd5e3fcb51c86af12bd453816726d7e653468a4423bf4f3a6ccdfa5ee7"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github/workflows": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.ziphash": {
+                  "sha256": "4798032c4b2d6f3f8fce4913773cb9ee02a27da50089272ab63192c598cae09a"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/mattn/go-sqlite3/@v/v1.14.33.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/mattn/go-sqlite3/@v/v1.14.33.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/mattn/go-sqlite3/@v/v1.14.33.zip": {
+                  "sha256": "70ab253e74cb68d53df4f6410ea19e4ee422d618984b7371b2ab05674e33e927"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/mattn/go-sqlite3/@v/v1.14.33.ziphash": {
+                  "sha256": "6c63688c02b87013217dc710401ebb44c07d79f0e1982eabd7861187064ca53b"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/lib/pq@v1.11.1/.github/workflows": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.codecov.yml": {
+                  "sha256": "1ab0af118abc204032fc015b3e4e6dc0469ccb44a7309a5855652610a357f65e"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github/FUNDING.yml": {
+                  "sha256": "11fdbbf6007626fa3a54bcf8099c3043402617cd159cd943889dd3abcc068794"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github/workflows": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github/workflows/cifuzz.yaml": {
+                  "sha256": "a4886913e03bcf3856167817d81c78155a68782ffe9492ffbeb04296c3ba1f51"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/mattn/go-sqlite3@v1.14.33/.github/workflows/docker.yaml": {
+                  "sha256": "ba7d4dd55875ff57c4b19b427ce70ce1166b3cffe784a43840ff419b0dcdd5ae"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/list": {
+                  "sha256": "1c7390408c06f10ec2f862559255135f4e3130725e7bd39ce4cce18868ccdc29"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/mattn/go-sqlite3/@v/v1.14.33.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/lib/pq/@v/v1.11.1.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/tidwall/btree/@v/v1.7.0.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/tidwall/btree/@v/v1.7.0.partial": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/tidwall/btree/@v/v1.7.0.zip": {
+                  "sha256": "4a6619eb936c836841702933a9d66f27abe83b7ffb541de44d12db4aa3a809d5"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/cache/download/github.com/tidwall/btree/@v/v1.7.0.ziphash": {
+                  "sha256": "cae8988f4e9823924923ce2fe7aef8f8a6ed0a30ea7d805a63dcb8533b79abed"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/tidwall/btree@v1.7.0/.github": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/tidwall/btree@v1.7.0/.github/workflows": {},
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/tidwall/btree@v1.7.0/.github/workflows/go.yml": {
+                  "sha256": "e5fef48977c8d8ec38fab043f3ec517e1aa06a0d4fa9466b0f5bb7fec2f2579c"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/tidwall/btree@v1.7.0/LICENSE": {
+                  "sha256": "144307e5049646f9bcfba8ef92095d0a8e223fc88d0e339106877071341898ee"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/tidwall/btree@v1.7.0/PATH_HINT.md": {
+                  "sha256": "ca382b4d3c658907cabe58b8eb65eb6b2fa6f5b237923137bba6dc989864c517"
+                },
+                "/home/jake/generate_att/gocache/redka/gopath/pkg/mod/github.com/tidwall/btree@v1.7.0/README.md": {
+                  "sha256": "dcb7f488e04f56820ad5b4fbf2520961fa7dd9040bca29693e434f4c1065abbd"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}
