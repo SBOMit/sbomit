@@ -8,17 +8,15 @@
 //	bundle, _ := os.ReadFile("attestation.json")
 //	result, err := resolve.Resolve(bundle, resolve.Options{})
 //	for _, p := range result.Packages {
-//	    fmt.Println(p.PURL, "evidenced by", p.Locations[0])
+//	    for _, e := range p.Evidence {
+//	        fmt.Println(p.PURL, e.Source, e.PkgMgr, e.Location)
+//	    }
 //	}
 //
-// Package identity is derived from paths. A build that opened
-//
-//	/usr/lib/python3.11/site-packages/werkzeug-3.0.1.dist-info/METADATA
-//
-// used werkzeug 3.0.1, and that is knowable from the path alone — which
-// matters, because an attestation records paths and digests but no content.
-// [Package.Locations] names the path each conclusion rests on so a
-// consumer can judge it.
+// Packages are identified from attested paths (site-packages/werkzeug-3.0.1.dist-info
+// means werkzeug 3.0.1) and from network-trace request URLs. Both are
+// reported, each as [Evidence] naming its source and package manager; how to
+// weigh them is left to the caller.
 //
 // Resolve accepts a bare in-toto statement or a DSSE envelope. For finer
 // control, call [attestation.ParseWitnessData] and pass the result to
@@ -28,7 +26,8 @@ package resolve
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"sort"
+
+	"github.com/sbomit/sbomit/pkg/attestation"
 )
 
 // Result is what resolving an attestation yields.
@@ -46,7 +45,7 @@ type Result struct {
 	Relationships []Relationship
 }
 
-// Package is a package derived from paths observed during the build.
+// Package is one package the attestation shows, from paths, requests, or both.
 type Package struct {
 	// ID is stable across runs for the same package identity and is what
 	// [Relationship.FromPackageID] refers to. Treat it as opaque.
@@ -55,35 +54,62 @@ type Package struct {
 	Name    string
 	Version string
 
-	// Ecosystem is one of: pypi, golang, cargo, npm, maven.
+	// Ecosystem is the PURL type: pypi, conda, golang, cargo, npm, maven.
 	Ecosystem string
 
 	PURL string
 
-	// Locations are the attested paths that evidenced this package, not the
-	// full set of files it owns. Ownership is in Relationships.
-	Locations []string
+	// Evidence is every path and request the package was identified from,
+	// plus its artifact file. A package seen only in the network trace has no
+	// path evidence and owns no files.
+	Evidence []Evidence
 
-	// Digests of the package's distributed artifact. Path resolution cannot
-	// establish this, so it is empty until network attestations contribute.
+	// Digests is the sha256 of the package's artifact, set only for pypi, cargo
+	// and conda (whose registries publish that value) and only when all
+	// artifact evidence agrees. Other ecosystems' artifact hashes stay on
+	// Evidence.
 	Digests []Digest
-
-	// FoundBy names the resolver that derived this package.
-	FoundBy string
 }
 
-// File is an attested path with whatever digests the attestation recorded.
-// Digests may be empty; witness records some opened files without one.
+// Source says where a piece of evidence came from.
+type Source string
+
+const (
+	// SourcePath is an attested path (material, command-run or product).
+	SourcePath Source = "path"
+
+	// SourceNetwork is a request in a network-trace attestation.
+	SourceNetwork Source = "network"
+)
+
+// Evidence is one observation a package rests on.
+type Evidence struct {
+	Source Source
+
+	// PkgMgr is the package manager: the one whose paths these are, or the
+	// one named in the request's User-Agent. Empty when unknown.
+	PkgMgr string
+
+	// Location is the attested path, or the request URL.
+	Location string
+
+	// Artifact reports whether Location is the artifact the registry publishes
+	// (not a file inside it, metadata, or a yarn cache zip).
+	Artifact bool
+
+	// Digests recorded for Location: the file's, or the response body's.
+	Digests []Digest
+}
+
+// File is an attested path with every distinct digest recorded for it. There
+// may be none, or two for one algorithm if the file changed during the build.
 type File struct {
 	Path    string
 	Digests []Digest
 }
 
 // Digest is a hash algorithm and its hex-encoded value.
-type Digest struct {
-	Algorithm string
-	Value     string
-}
+type Digest = attestation.Digest
 
 // RelationshipType describes how a package relates to a path.
 type RelationshipType string
@@ -140,24 +166,4 @@ func (r *Result) PackageByID(id string) (Package, bool) {
 func packageID(purl string) string {
 	sum := sha256.Sum256([]byte(purl))
 	return hex.EncodeToString(sum[:8])
-}
-
-// digestsOf converts an algorithm->hex map into a sorted Digest slice so that
-// output ordering is stable.
-func digestsOf(m map[string]string) []Digest {
-	if len(m) == 0 {
-		return nil
-	}
-
-	algos := make([]string, 0, len(m))
-	for algo := range m {
-		algos = append(algos, algo)
-	}
-	sort.Strings(algos)
-
-	out := make([]Digest, 0, len(algos))
-	for _, algo := range algos {
-		out = append(out, Digest{Algorithm: algo, Value: m[algo]})
-	}
-	return out
 }

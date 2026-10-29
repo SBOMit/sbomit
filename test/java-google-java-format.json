@@ -1,0 +1,243 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Apache-Maven/3.9.11 (Java 21.0.12.1; Linux 7.0.0-1013-gcp)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/biz.aQute.bnd.util-7.2.3.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "e17cdc6436b8dd96d38872adc95b2ee02ac8468aaf9e028ca1bb79e61a62cdfa",
+                        "size": 3400
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Apache-Maven/3.9.11 (Java 21.0.12.1; Linux 7.0.0-1013-gcp)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/biz.aQute.bndlib-7.2.3.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "3f4dde54fe2cd76ee83cfaab1d968d334b142262cef1ac0ed824d07fe09bec01",
+                        "size": 6173
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Apache-Maven/3.9.11 (Java 21.0.12.1; Linux 7.0.0-1013-gcp)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/biz.aQute.bnd.util-7.2.3.jar"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "ab7812dc651aa8113cd036b7a6f20e5afeb100118e4501423c3411db5a91b5a7",
+                        "size": 454455
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Apache-Maven/3.9.11 (Java 21.0.12.1; Linux 7.0.0-1013-gcp)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/biz.aQute.bndlib-7.2.3.jar"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "16878781292692cd57cd5f5295aef7d9bb19348e34cdb90978e8060af08a1c62",
+                        "size": 3482894
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Apache-Maven/3.9.11 (Java 21.0.12.1; Linux 7.0.0-1013-gcp)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/biz.aQute.bnd.embedded-repo-7.2.3.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "ae3e4eefcb6a6977f36ceea64bfadae70ab1252b09a25a0e714ec3aed8d9e960",
+                        "size": 3226
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Apache-Maven/3.9.11 (Java 21.0.12.1; Linux 7.0.0-1013-gcp)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/biz.aQute.bnd.embedded-repo-7.2.3.jar"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "12319ae2316e937e030315c4835aa3a4eb3249520a6500dd4afa87ab7f11e3f4",
+                        "size": 6236763
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/google-java-format/repository/.cache/tycho/com.ibm.icu-54.1.1.v201501272100.jar.tycholock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/.cache/tycho/http/www.eclipse.org/downloads/download.php/format=xml/file=/releases/mars/201506241002/countryCode=/timeZone=0/format=xml": {
+                  "sha256": "7d963a070fcf51f373dd6c7bbdc2bac7091a9b03cae257f2e24ac3504103f957"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/_remote.repositories": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/biz.aQute.bnd.embedded-repo-7.2.3.jar": {
+                  "sha256": "12319ae2316e937e030315c4835aa3a4eb3249520a6500dd4afa87ab7f11e3f4"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/biz.aQute.bnd.embedded-repo-7.2.3.jar.lastUpdated": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/biz.aQute.bnd.embedded-repo-7.2.3.pom": {
+                  "sha256": "ae3e4eefcb6a6977f36ceea64bfadae70ab1252b09a25a0e714ec3aed8d9e960"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.embedded-repo/7.2.3/biz.aQute.bnd.embedded-repo-7.2.3.pom.lastUpdated": {
+                  "sha256": "1fae124a7f0486a3687a4de5bb9f50799d66f077b003f38c5e6439c634646a7b"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/_remote.repositories": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/biz.aQute.bnd.util-7.2.3.jar": {
+                  "sha256": "ab7812dc651aa8113cd036b7a6f20e5afeb100118e4501423c3411db5a91b5a7"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/biz.aQute.bnd.util-7.2.3.jar.lastUpdated": {
+                  "sha256": "08c550a71fdad58169b6e5b11b8ec832d45dce749ad0b53b07499ee8a3f94dcb"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/biz.aQute.bnd.util-7.2.3.pom": {
+                  "sha256": "e17cdc6436b8dd96d38872adc95b2ee02ac8468aaf9e028ca1bb79e61a62cdfa"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bnd.util/7.2.3/biz.aQute.bnd.util-7.2.3.pom.lastUpdated": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/_remote.repositories": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/biz.aQute.bndlib-7.2.3.jar": {
+                  "sha256": "16878781292692cd57cd5f5295aef7d9bb19348e34cdb90978e8060af08a1c62"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/biz.aQute.bndlib-7.2.3.jar.lastUpdated": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/biz.aQute.bndlib-7.2.3.pom": {
+                  "sha256": "3f4dde54fe2cd76ee83cfaab1d968d334b142262cef1ac0ed824d07fe09bec01"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/biz/aQute/bnd/biz.aQute.bndlib/7.2.3/biz.aQute.bndlib-7.2.3.pom.lastUpdated": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/p2/osgi/bundle/com.ibm.icu/54.1.1.v201501272100/com.ibm.icu-54.1.1.v201501272100-p2artifacts.xml": {
+                  "sha256": "29073115b4b2b769f84294fa98bc82997f7aeae72df5067ecf01a703ff16119f"
+                },
+                "/home/jake/generate_att/javacache/google-java-format/repository/p2/osgi/bundle/com.ibm.icu/54.1.1.v201501272100/com.ibm.icu-54.1.1.v201501272100.jar": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

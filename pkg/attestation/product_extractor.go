@@ -28,23 +28,16 @@ func (e *ProductExtractor) Extract(data map[string]interface{}) []FileInfo {
 		}
 	}
 
-	for path, hashData := range products {
-		fi := FileInfo{
-			Path:   path,
-			Hashes: make(map[string]string),
-		}
-
-		if hashes, ok := hashData.(map[string]interface{}); ok {
-			for algo, hash := range hashes {
-				if hashStr, ok := hash.(string); ok {
-					fi.Hashes[algo] = hashStr
-				}
+	for path, entry := range products {
+		// Entries are {"mime_type": ..., "digest": {...}}.
+		var hashData interface{} = entry
+		if m, ok := entry.(map[string]interface{}); ok {
+			if d, ok := m["digest"]; ok {
+				hashData = d
 			}
 		}
 
-		if len(fi.Hashes) > 0 {
-			files = append(files, fi)
-		}
+		files = append(files, FileInfo{Path: path, Digests: parseDigests(hashData)})
 	}
 
 	return files

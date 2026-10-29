@@ -30,22 +30,7 @@ func (e *MaterialExtractor) Extract(data map[string]interface{}) []FileInfo {
 	}
 
 	for path, hashData := range materials {
-		fi := FileInfo{
-			Path:   path,
-			Hashes: make(map[string]string),
-		}
-
-		if hashes, ok := hashData.(map[string]interface{}); ok {
-			for algo, hash := range hashes {
-				if hashStr, ok := hash.(string); ok {
-					fi.Hashes[algo] = hashStr
-				}
-			}
-		}
-
-		if len(fi.Hashes) > 0 {
-			files = append(files, fi)
-		}
+		files = append(files, FileInfo{Path: path, Digests: parseDigests(hashData)})
 	}
 
 	return files

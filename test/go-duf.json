@@ -1,0 +1,389 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/%21i%21g%21l%21o%21u-%21e%21u/go-wildcard/@v/v1.0.3.zip"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "fabf7a28a76606b3aa9c9ef54a0f59cb9b5fdbd9e3dcb40fa55786beebd39416",
+                        "size": 12038
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/%21i%21g%21l%21o%21u-%21e%21u/go-wildcard/@v/v1.0.3.mod"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "7f8f7f46b876d44b3ad0d51cc8b2392148df1100935fdb855f548496954bedd1",
+                        "size": 48
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.zip"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "939ebf2a5481f2172e1a5e0c318d05aef5b6d950a960556216c3da7879a927f8",
+                        "size": 7855
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/clipperhouse/uax29/v2/@v/v2.2.0.zip"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "0b26d739ddde86a3bd2c0cc4ce8ca711696a523499a9b26732fb25fc8b9531ab",
+                        "size": 283496
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.mod"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "4646f9f19a822aebf4296bce24d5f2b7b2700ea1c44f5cc978300263cb7b5611",
+                        "size": 52
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/clipperhouse/uax29/v2/@v/v2.2.0.mod"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "f3c5f4e4f9e7fb16aea5fd9dc5f24c3ff9c157b1a67576c0f2140117589507a0",
+                        "size": 255
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/%21i%21g%21l%21o%21u-%21e%21u/go-wildcard/@v/v1.0.3.info"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "4f5fdc64c66b2d00657a69b6690c88f99997423176eb31d811d36d4923dd3362",
+                        "size": 50
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/clipperhouse/uax29/v2/@v/v2.2.0.info"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "b7a98f2cf0f70b7a88239e2a0bc08934eeb92ff834243e0d3fa9644fff73f117",
+                        "size": 194
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "proxy.golang.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Go-http-client/1.1"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://proxy.golang.org:443/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.info"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "2b7c4062ead1b647bedb8233e41f7d9ffe4ac753971d8340e13fda6bbe73f54c",
+                        "size": 197
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/wildcard.go": {
+                  "sha256": "7645aa67267b46e3ca20eaea32deb69d23ce031e44299d511310c69c9aac1bc0"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.github": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.github/workflows": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/v1.0.3.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/v1.0.3.partial": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/v1.0.3.zip": {
+                  "sha256": "fabf7a28a76606b3aa9c9ef54a0f59cb9b5fdbd9e3dcb40fa55786beebd39416"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/v1.0.3.ziphash": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.2.0.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.2.0.partial": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.2.0.zip": {
+                  "sha256": "0b26d739ddde86a3bd2c0cc4ce8ca711696a523499a9b26732fb25fc8b9531ab"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.2.0.ziphash": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/.gitignore": {
+                  "sha256": "a5d6599303c542963e32d4ed819f3959b68d849d856688cf39648c8e271f2533"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/LICENSE": {
+                  "sha256": "44b0a56e80b41a1b0a6bd1292515e806539fd97b30be54c2719e6c763190ab57"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/README.md": {
+                  "sha256": "1448f0f72ecd761ab777141f52bab6122f5bee7be498ff493df7ac6b85d8b40c"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/go.mod": {
+                  "sha256": "7f8f7f46b876d44b3ad0d51cc8b2392148df1100935fdb855f548496954bedd1"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/wildcard.go": {
+                  "sha256": "7645aa67267b46e3ca20eaea32deb69d23ce031e44299d511310c69c9aac1bc0"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/wildcard_test.go": {
+                  "sha256": "69897802dddff9ca5293a097da3c2e334618fc4e00534240288f5b7259bf686e"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.github": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.github/workflows": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.github/workflows/gofuzz.yml": {
+                  "sha256": "9afea63da4f4bb3e05450d6273333f4ee37caaba24f86407d75796d2a4dbd601"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.github/workflows/gotest.yml": {
+                  "sha256": "d818be5841d9a5fefc56cdd8fa22897533eac8348fc21cc3e41e18b16c9f45ef"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/.gitignore": {
+                  "sha256": "d7d5f5cfc6ba9aec2f67c2471f80cdae5309c87146b66eb25228ccab07a6007f"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/clipperhouse/uax29/v2@v2.2.0/LICENSE": {
+                  "sha256": "07e9e3daaccc707c9b7d535ed1405a65d37919fdd42197fe55e68820e974688c"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/!i!g!l!o!u-!e!u/go-wildcard@v1.0.3/wildcard.go": {
+                  "sha256": "7645aa67267b46e3ca20eaea32deb69d23ce031e44299d511310c69c9aac1bc0"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/v1.0.3.ziphash": {
+                  "sha256": "31edbcf3b4276597d4502379e9cfcb8a4eb1be7f2e64dc882d0be92aa895e618"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.ziphash": {
+                  "sha256": "01f2385fa816829988e853d444a31054bca5e51cef1cebdf0506721e635a0e9c"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/clipperhouse/uax29/v2/@v/v2.2.0.ziphash": {
+                  "sha256": "196d4f8748fadad5e2b16a0d1abb544701b4370606a243e8991cc1e9cf58b730"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/v1.0.3.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/!i!g!l!o!u-!e!u/go-wildcard/@v/list": {
+                  "sha256": "49a83c617e37f8a9fb1f3f393f1d17399cf63a911cb43eba0493389f84d02d61"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.lock": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.partial": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.zip": {
+                  "sha256": "939ebf2a5481f2172e1a5e0c318d05aef5b6d950a960556216c3da7879a927f8"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/cache/download/github.com/aymanbagabas/go-osc52/v2/@v/v2.0.1.ziphash": {
+                  "sha256": "01f2385fa816829988e853d444a31054bca5e51cef1cebdf0506721e635a0e9c"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/aymanbagabas/go-osc52/v2@v2.0.1/.github": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/aymanbagabas/go-osc52/v2@v2.0.1/.github/workflows": {},
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/aymanbagabas/go-osc52/v2@v2.0.1/.github/workflows/build.yml": {
+                  "sha256": "006283680995496ca6aa69a79c514ec875c6853ebf6417393a25a04f18f5e3a1"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/aymanbagabas/go-osc52/v2@v2.0.1/LICENSE": {
+                  "sha256": "11319e34d9dac2f45392f14f4f62e28b24173cfa13d39b32e7b7b66c2f3bdccd"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/aymanbagabas/go-osc52/v2@v2.0.1/README.md": {
+                  "sha256": "f63be6de595098551ce226467150a702b5466d9f5933dd616778ae1385f833b4"
+                },
+                "/home/jake/generate_att/gocache/duf/gopath/pkg/mod/github.com/aymanbagabas/go-osc52/v2@v2.0.1/_examples": {}
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

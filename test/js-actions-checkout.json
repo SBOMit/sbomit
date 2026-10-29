@@ -1,0 +1,116 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "npm/11.19.0 node/v24.21.0 linux x64 workspaces/false"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@actions/exec/-/exec-3.0.0.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "dbcadd151824dbffbd134fe59d2968aa063fa7c52dbb9515247e6eba9c09cc0e",
+                        "size": 14111
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "npm/11.19.0 node/v24.21.0 linux x64 workspaces/false"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "67238108294ed04c0c038ef7a8279d93ddae273c3ad91122b60cac868a08f4f2",
+                        "size": 4124
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "npm/11.19.0 node/v24.21.0 linux x64 workspaces/false"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@actions/core/-/core-3.0.1.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "1c4f1ad94c257df998dec6cf26f0a86b834c16c942dffc7508e445ba7461e084",
+                        "size": 23250
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/actions-checkout/node_modules/.package-lock.json": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/actions-checkout/node_modules/@aashutoshrathi/word-wrap": {}
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

@@ -1,0 +1,216 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "files.pythonhosted.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pip/24.0 {\"ci\":null,\"cpu\":\"x86_64\",\"distro\":{\"id\":\"noble\",\"libc\":{\"lib\":\"glibc\",\"version\":\"2.39\"},\"name\":\"Ubuntu\",\"version\":\"24.04\"},\"implementation\":{\"name\":\"CPython\",\"version\":\"3.12.3\"},\"installer\":{\"name\":\"pip\",\"version\":\"24.0\"},\"openssl_version\":\"OpenSSL 3.0.13 30 Jan 2024\",\"python\":\"3.12.3\",\"system\":{\"name\":\"Linux\",\"release\":\"7.0.0-1011-gcp\"}}"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://files.pythonhosted.org:443/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl.metadata"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "4cd40e690f23bf37cbcad34efd6758e062df1df07c86833f7e3ce95bf1fa38cc",
+                        "size": 8754
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "files.pythonhosted.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pip/24.0 {\"ci\":null,\"cpu\":\"x86_64\",\"distro\":{\"id\":\"noble\",\"libc\":{\"lib\":\"glibc\",\"version\":\"2.39\"},\"name\":\"Ubuntu\",\"version\":\"24.04\"},\"implementation\":{\"name\":\"CPython\",\"version\":\"3.12.3\"},\"installer\":{\"name\":\"pip\",\"version\":\"24.0\"},\"openssl_version\":\"OpenSSL 3.0.13 30 Jan 2024\",\"python\":\"3.12.3\",\"system\":{\"name\":\"Linux\",\"release\":\"7.0.0-1011-gcp\"}}"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://files.pythonhosted.org:443/packages/78/2d/7fa73dfa841b5ac06c7b8855cfc18622132e365f5b81d02230333ff26e9e/cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "b98ce7e3417af089bc12d5c73412d9b3b1683ccf8ec73c986c35ac8c9be1ba39",
+                        "size": 2559
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "files.pythonhosted.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pip/24.0 {\"ci\":null,\"cpu\":\"x86_64\",\"distro\":{\"id\":\"noble\",\"libc\":{\"lib\":\"glibc\",\"version\":\"2.39\"},\"name\":\"Ubuntu\",\"version\":\"24.04\"},\"implementation\":{\"name\":\"CPython\",\"version\":\"3.12.3\"},\"installer\":{\"name\":\"pip\",\"version\":\"24.0\"},\"openssl_version\":\"OpenSSL 3.0.13 30 Jan 2024\",\"python\":\"3.12.3\",\"system\":{\"name\":\"Linux\",\"release\":\"7.0.0-1011-gcp\"}}"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://files.pythonhosted.org:443/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309",
+                        "size": 67548
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "files.pythonhosted.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pip/24.0 {\"ci\":null,\"cpu\":\"x86_64\",\"distro\":{\"id\":\"noble\",\"libc\":{\"lib\":\"glibc\",\"version\":\"2.39\"},\"name\":\"Ubuntu\",\"version\":\"24.04\"},\"implementation\":{\"name\":\"CPython\",\"version\":\"3.12.3\"},\"installer\":{\"name\":\"pip\",\"version\":\"24.0\"},\"openssl_version\":\"OpenSSL 3.0.13 30 Jan 2024\",\"python\":\"3.12.3\",\"system\":{\"name\":\"Linux\",\"release\":\"7.0.0-1011-gcp\"}}"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://files.pythonhosted.org:443/packages/78/2d/7fa73dfa841b5ac06c7b8855cfc18622132e365f5b81d02230333ff26e9e/cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "3e17ed538242334bf70832644a32a7aae3d83b57567f9fd60a26257e992b79ba",
+                        "size": 219572
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages": {},
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/build/_compat": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages": {},
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/__pycache__/six.cpython-312.pyc.134067833073744": {},
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs-26.1.0.dist-info/INSTALLER": {
+                  "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs-26.1.0.dist-info/METADATA": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs-26.1.0.dist-info/RECORD": {
+                  "sha256": "ece8bf0367609a064951bcf56a1697d8c61b674d0ce7a7d57e0a93777d86b4af"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs-26.1.0.dist-info/REQUESTED": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs-26.1.0.dist-info/WHEEL": {
+                  "sha256": "41c708c5adba6e097513ab8ccb9f1d7865a2fb469e22491a9e01dcc64da459fc"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs-26.1.0.dist-info/licenses/LICENSE": {
+                  "sha256": "882115c95dfc2af1eeb6714f8ec6d5cbcabf667caff8729f42420da63f714e9f"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs/__init__.py": {
+                  "sha256": "47168064dc1888487e7dcbc72d936943f0d62a78bbdccfe3c443c47ed8aad597"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs/__init__.pyi": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/attrs/converters.py": {
+                  "sha256": "f244258eb5707d24d1bbc20dc0493c488d1e1abce659fb6c4fbaccd04ab2a213"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/build-1.6.1.dist-info": {},
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/build-1.6.1.dist-info/METADATA": {
+                  "sha256": "f3623590844a25dcf308a71a988c73e293b7ef779a1f43acb83ad1be218d61a0"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/INSTALLER": {
+                  "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/METADATA": {
+                  "sha256": "b98ce7e3417af089bc12d5c73412d9b3b1683ccf8ec73c986c35ac8c9be1ba39"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/RECORD": {
+                  "sha256": "efd7b787cdada9ba172f7a958f1e6ffc48bdd44e4b7f5cd7b1d6ca750dcfc2d5"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/REQUESTED": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/WHEEL": {
+                  "sha256": "692806d05e2b18f66d5748931087f2e9db47aba83aecbcdedee2df934bd69fcf"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/entry_points.txt": {
+                  "sha256": "cba8d3c67c9eb8b9cbf9725c0eff2e30bde7eb0c98886460f0c4e9fd0189f47a"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/licenses/AUTHORS": {
+                  "sha256": "2a67a60bbfb33759d67d645ff131b8e6d6bc4cafc232d751fcac3eda4d314cc8"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/licenses/LICENSE": {
+                  "sha256": "5ba24ddc57067f9249add644c3afc41a5d6dc37e23433ef759d95df370b0af63"
+                },
+                "/home/jake/generate_att/venvs/python/in-toto/lib/python3.12/site-packages/cffi-2.0.0.dist-info/top_level.txt": {
+                  "sha256": "ac4ed6477ad97cd2b1588f7e8e7ea1b0708097b303901f859ae41bc568c57a14"
+                },
+                "/tmp/pip-unpack-f4n5ocvo/attrs-26.1.0-py3-none-any.whl": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/tmp/pip-unpack-f4n5ocvo/cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

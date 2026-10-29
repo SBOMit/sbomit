@@ -4,33 +4,35 @@ import (
 	"path"
 	"sort"
 	"strings"
+
+	"github.com/sbomit/sbomit/pkg/attestation"
 )
+
+// Digest is a hash algorithm and its hex-encoded value.
+type Digest = attestation.Digest
 
 type PackageInfo struct {
 	Name      string `json:"name"`
 	Version   string `json:"version"`
-	Ecosystem string `json:"ecosystem"` // pypi, golang, cargo, npm, etc.
+	Ecosystem string `json:"ecosystem"` // the PURL type: pypi, conda, golang, cargo, npm, maven
 	PURL      string `json:"purl"`
-	// Hashes should be the digest of the package artifact itself: the wheel,
-	// tarball, crate, or module that was distributed as the package.
-	// It must never hold the digest of an individual file that merely belongs
-	// to the package. A package checksum that is really a member-file checksum
-	// cannot be verified against anything the registry publishes.
-	//
-	// Path resolution cannot establish this, so it is always empty today. It
-	// becomes populatable once download evidence is available again.
-	Hashes  map[string]string `json:"hashes,omitempty"`
-	FoundBy string            `json:"found_by"` // which resolver found this
+
+	// PkgMgr is the package manager whose paths identified the package.
+	PkgMgr string `json:"pkgmgr"`
 
 	// Locations are the attested paths that evidenced this package, not the
 	// full set of files it owns. Ownership is in ResolverResult.Owned.
 	Locations []string `json:"locations,omitempty"`
+
+	// Artifact is the package's artifact file (wheel, .crate, .conda, module
+	// .zip, jar) if the build touched it. It may also be in Locations.
+	Artifact *FileInfo `json:"artifact,omitempty"`
 }
 
 type FileInfo struct {
 	Path string `json:"path"`
-	// File digests stay on file nodes.
-	Hashes map[string]string `json:"hashes,omitempty"`
+	// Digests recorded for the path; may be empty or hold several values.
+	Digests []Digest `json:"digests,omitempty"`
 }
 
 // OwnedFile is a file attributed to a package.
@@ -42,21 +44,15 @@ type OwnedFile struct {
 type ResolverResult struct {
 	Packages []PackageInfo `json:"packages"`
 
-	// Owned are files attributed to a package, named by OwnerPURL. A file can
-	// sit inside a package's directory without being the file that identified
-	// it, so this is a superset of every package's Locations.
+	// Owned are files attributed to a package, a superset of Locations.
 	Owned []OwnedFile `json:"owned,omitempty"`
 
-	// Files are the paths no package claimed — config read during the build,
-	// system libraries linked against, scripts executed.
+	// Files are the paths no package claimed.
 	Files []FileInfo `json:"files"`
 }
 
-// Path is a file path with the normalized forms matchers need.
-//
-// Attribution tests every unclaimed file against every package's filter, so it
-// is O(files x packages) — millions of comparisons on a large build.
-// Normalizing once per file rather than once per comparison keeps it cheap.
+// Path is a file path with the normalized forms matchers need, computed once
+// since attribution compares every file against every package.
 type Path struct {
 	Raw   string
 	Clean string
@@ -108,7 +104,7 @@ func NewResolverChain() *ResolverChain {
 			NewGoResolver(),
 			NewRustResolver(),
 			NewJavaScriptResolver(),
-			NewMavenResolver(),
+			NewJavaResolver(),
 		},
 		filter: NewFileFilter(),
 	}
@@ -118,15 +114,9 @@ func (c *ResolverChain) AddResolver(r Resolver) {
 	c.resolvers = append(c.resolvers, r)
 }
 
-// ResolveAll processes all files through the resolver chain:
-//  1. Filter out unwanted files (cache, temp, system files).
-//  2. Pass files through each resolver in sequence. Each claims the packages it
-//     recognizes, records the path that evidenced each one in Locations, and
-//     passes everything it did not claim to the next.
-//  3. Attribute the leftovers: every unclaimed file is tested against each
-//     recognized package's ownership filters, since a file can sit inside a
-//     package's directory without being the file that identified it.
-//  4. Whatever no package claims ends up in Files.
+// ResolveAll filters out noise, runs each resolver in turn on what the previous
+// ones did not claim, attributes the leftovers to packages by their ownership
+// filters, and returns the rest as Files.
 func (c *ResolverChain) ResolveAll(files []FileInfo) ResolverResult {
 	result := ResolverResult{
 		Packages: []PackageInfo{},
@@ -134,12 +124,7 @@ func (c *ResolverChain) ResolveAll(files []FileInfo) ResolverResult {
 	}
 
 	// Step 1: Filter files first
-	var filteredFiles []FileInfo
-	for _, f := range files {
-		if c.filter.ShouldInclude(f.Path) {
-			filteredFiles = append(filteredFiles, f)
-		}
-	}
+	filteredFiles := c.filter.Filter(files)
 
 	// Step 2: Pass through resolver chain
 	remainingFiles := filteredFiles
@@ -172,13 +157,11 @@ func (c *ResolverChain) ResolveAll(files []FileInfo) ResolverResult {
 	return result
 }
 
-// attribute assigns files to the packages that own them. Evidence paths are
-// added first so their digests survive: a file reached through a resolver's
-// ownership filter may carry a barer record than the one originally observed.
+// attribute assigns files to the packages that own them, cited paths first.
 func attribute(observed, unclaimed []FileInfo, packages []PackageInfo, filters []OwnershipFilter) (owned []OwnedFile, unowned []FileInfo) {
-	digestsByPath := make(map[string]map[string]string, len(observed))
+	digestsByPath := make(map[string][]Digest, len(observed))
 	for _, f := range observed {
-		digestsByPath[f.Path] = f.Hashes
+		digestsByPath[f.Path] = f.Digests
 	}
 
 	seen := make(map[string]struct{})
@@ -193,7 +176,7 @@ func attribute(observed, unclaimed []FileInfo, packages []PackageInfo, filters [
 
 	for _, pkg := range packages {
 		for _, loc := range pkg.Locations {
-			addOwned(FileInfo{Path: loc, Hashes: digestsByPath[loc]}, pkg.PURL)
+			addOwned(FileInfo{Path: loc, Digests: digestsByPath[loc]}, pkg.PURL)
 		}
 	}
 
@@ -233,12 +216,8 @@ type OwnershipFilterer interface {
 	OwnershipFilters(packages []PackageInfo) []OwnershipFilter
 }
 
-// pickEvidence chooses which of a package's paths to cite as its evidence, and
-// returns the rest for ownership attribution.
-//
-// Without ranking, the evidence would be whichever file was seen first, which
-// is arbitrary: a Maven artifact would cite _remote.repositories over its jar.
-// Ties break on the smaller path so the result is stable across runs.
+// pickEvidence returns the highest-ranked path to cite and the rest. Ties break
+// on the smaller path for stable output.
 func pickEvidence(files []FileInfo, rank func(string) int) (evidence FileInfo, rest []FileInfo) {
 	if len(files) == 0 {
 		return FileInfo{}, nil
@@ -287,10 +266,11 @@ func (g *group) add(key string, pkg PackageInfo, f FileInfo) {
 	g.files[key] = append(g.files[key], f)
 }
 
-// finish resolves each group into a package plus its non-evidence files. The
-// non-evidence files are returned so the caller can hand them back for
-// ownership attribution rather than dropping them.
-func (g *group) finish(rank func(string) int) ([]PackageInfo, []FileInfo) {
+// finish turns each group into a package and returns its non-cited files for
+// attribution. Any file matching isArtifact becomes PackageInfo.Artifact,
+// even if another file is cited. isArtifact is nil if the package manager
+// leaves no artifact on disk.
+func (g *group) finish(rank func(string) int, isArtifact func(string) bool) ([]PackageInfo, []FileInfo) {
 	packages := make([]PackageInfo, 0, len(g.order))
 	var rest []FileInfo
 
@@ -299,10 +279,35 @@ func (g *group) finish(rank func(string) int) ([]PackageInfo, []FileInfo) {
 
 		pkg := g.meta[key]
 		pkg.Locations = []string{evidence.Path}
+		if isArtifact != nil {
+			pkg.Artifact = artifactFile(g.files[key], isArtifact)
+		}
 		packages = append(packages, pkg)
 
 		rest = append(rest, others...)
 	}
 
 	return packages, rest
+}
+
+// artifactFile returns the group's artifact, preferring one with a digest, then
+// the smaller path. Nil if there is none.
+func artifactFile(files []FileInfo, isArtifact func(string) bool) *FileInfo {
+	var best *FileInfo
+
+	for i := range files {
+		f := files[i]
+		if !isArtifact(f.Path) {
+			continue
+		}
+		switch {
+		case best == nil,
+			len(f.Digests) > 0 && len(best.Digests) == 0,
+			(len(f.Digests) > 0) == (len(best.Digests) > 0) && f.Path < best.Path:
+			c := f
+			best = &c
+		}
+	}
+
+	return best
 }

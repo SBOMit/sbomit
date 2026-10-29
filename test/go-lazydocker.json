@@ -1,0 +1,47 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/gocache/lazydocker/gopath/pkg/mod/cache/download/github.com/jesseduffield/lazydocker/@v/v0.25.2.info843669929.tmp": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com": {},
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft": {},
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio": {},
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio/.gitattributes": {
+                  "sha256": "f70d755466b101646b043fe3c62c4f8a39eae827c1a2a303a2d39ccd93f534f8"
+                },
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio/.gitignore": {
+                  "sha256": "c6834ab5bda92e20e92e52599c953cd9d87a2fd54482d1ce27f73f53f8b9eb99"
+                },
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio/.golangci.yml": {
+                  "sha256": "fb3283acd7d9cf2693f0b57cae358fdecf38cb6339724ceadaf7a8282cbb968b"
+                },
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio/CODEOWNERS": {
+                  "sha256": "7eae48a0d88a108696b3e01ff22db3707b9e3e007e60ef5ee5e5004e064acdc4"
+                },
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio/LICENSE": {
+                  "sha256": "cf248820bf1178370bb4f1670a59f8748d46bc96d0f64080cd631511c6046409"
+                },
+                "/home/jake/generate_att/projects/go/lazydocker/vendor/github.com/Microsoft/go-winio/README.md": {
+                  "sha256": "2c75d84c7a5562dd42edde622663d25a3a4c52c3962693e975cb7a47823f12f2"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}
