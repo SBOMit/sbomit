@@ -1,0 +1,281 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/com/beust/jcommander/1.48/jcommander-1.48.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "107e1a027e8ab334b81fb2896060db6baf32e37d2e304e6094236d3e7eb29903",
+                        "size": 9293
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/org/antlr/antlr-master/3.5.2/antlr-master-3.5.2.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "42d91a531ea5100eb09b541aa002c3b908e8f282bd73b6e2f52f371ef1331bd6",
+                        "size": 12282
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/antlr/antlr/2.7.7/antlr-2.7.7.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "100f793ba27f8b4e4204edb46171ebf36e54e0f94cfc02527fea07a0bb1fceb7",
+                        "size": 632
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/com/beust/jcommander/1.48/jcommander-1.48.jar"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "a7313fcfde070930e40ec79edf3c5948cf34e4f0d25cb3a09f9963d8bdd84113",
+                        "size": 63504
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "repo.maven.apache.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://repo.maven.apache.org:443/maven2/antlr/antlr/2.7.7/antlr-2.7.7.jar"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c",
+                        "size": 445288
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "dl.google.com"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://dl.google.com:443/dl/android/maven2/com/android/tools/r8/9.1.31/r8-9.1.31.pom"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "4bbdb08e2236481cf5973cc207470f4e21ad43bd16ce4b326f8718990650cbcd",
+                        "size": 2843
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "dl.google.com"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "Gradle/9.7.1 (Linux;7.0.0-1013-gcp;amd64) (Ubuntu;21.0.12.1;21.0.12.1+1-1-24.04.4-Ubuntu)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://dl.google.com:443/dl/android/maven2/com/android/tools/r8/9.1.31/r8-9.1.31.jar"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "3b4de3053885da105e39c15212261d22653d6d1b5eb92323dd04ae913cc8286f",
+                        "size": 18963189
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.beust/jcommander/1.48/e3c44d63445a893c083e87f1baa12300a2766c81/jcommander-1.48.pom": {
+                  "sha256": "107e1a027e8ab334b81fb2896060db6baf32e37d2e304e6094236d3e7eb29903"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.beust/jcommander/1.48/e3c44d63445a893c083e87f1baa12300a2766c81/jcommander-1.48.pom.fslck": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/antlr/antlr/2.7.7/83cd2cd674a217ade95a4bb83a8a14f351f48bd0/antlr-2.7.7.jar": {
+                  "sha256": "88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.beust/jcommander/1.48/bfcb96281ea3b59d626704f74bc6d625ff51cbce/jcommander-1.48.jar": {
+                  "sha256": "a7313fcfde070930e40ec79edf3c5948cf34e4f0d25cb3a09f9963d8bdd84113"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.android.tools/r8/9.1.31/ff16ffc4d409a0c3d41537918bc0fd274588ee4b/r8-9.1.31.jar": {
+                  "sha256": "3b4de3053885da105e39c15212261d22653d6d1b5eb92323dd04ae913cc8286f"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/antlr/antlr/2.7.7": {},
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/antlr/antlr/2.7.7/83cd2cd674a217ade95a4bb83a8a14f351f48bd0/antlr-2.7.7.jar.fslck": {}
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/antlr/antlr/2.7.7/83cd2cd674a217ade95a4bb83a8a14f351f48bd0/antlr-2.7.7.jar": {
+                  "sha256": "88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.android.tools/r8/9.1.31": {},
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.android.tools/r8/9.1.31/a93c05d469afb85c6ace8febb1b6f0233b6c3c53/r8-9.1.31.pom": {
+                  "sha256": "4bbdb08e2236481cf5973cc207470f4e21ad43bd16ce4b326f8718990650cbcd"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.android.tools/r8/9.1.31/a93c05d469afb85c6ace8febb1b6f0233b6c3c53/r8-9.1.31.pom.fslck": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.android.tools/r8/9.1.31/ff16ffc4d409a0c3d41537918bc0fd274588ee4b/r8-9.1.31.jar": {
+                  "sha256": "3b4de3053885da105e39c15212261d22653d6d1b5eb92323dd04ae913cc8286f"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.android.tools/r8/9.1.31/ff16ffc4d409a0c3d41537918bc0fd274588ee4b/r8-9.1.31.jar.fslck": {},
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.beust/jcommander/1.48/bfcb96281ea3b59d626704f74bc6d625ff51cbce/jcommander-1.48.jar": {
+                  "sha256": "a7313fcfde070930e40ec79edf3c5948cf34e4f0d25cb3a09f9963d8bdd84113"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/antlr/antlr/2.7.7/52f15b99911ab8b8bc8744675f5cf1994a626fb8/antlr-2.7.7.pom": {
+                  "sha256": "100f793ba27f8b4e4204edb46171ebf36e54e0f94cfc02527fea07a0bb1fceb7"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/antlr/antlr/2.7.7/52f15b99911ab8b8bc8744675f5cf1994a626fb8/antlr-2.7.7.pom.fslck": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/files-2.1/com.beust/jcommander/1.48/bfcb96281ea3b59d626704f74bc6d625ff51cbce/jcommander-1.48.jar.fslck": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/metadata-2.107/descriptors/antlr/antlr/2.7.7/26c913274550a0b2221f47a0fe2d2358/descriptor.bin": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/javacache/apktool/gradle-home/caches/modules-2/metadata-2.107/descriptors/antlr/antlr/2.7.7/26c913274550a0b2221f47a0fe2d2358/descriptor.bin.fslck": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

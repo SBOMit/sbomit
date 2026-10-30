@@ -1,9 +1,12 @@
-// Package network resolves packages from network-trace witness attestations.
-// Each ecosystem registers the hostnames it owns and a URL parsing strategy.
-// The Chain routes connections by hostname to the right DomainResolver.
+// Package network reads packages from network-trace request URLs. Each
+// ecosystem registers its hostnames and URL parsing; every request that names
+// a package is reported, artifact or metadata.
 package network
 
 import (
+	"sort"
+	"strings"
+
 	"github.com/sbomit/sbomit/pkg/attestation"
 	"github.com/sbomit/sbomit/pkg/resolver"
 )
@@ -21,17 +24,34 @@ type NetworkExchange struct {
 	URL        string
 	Method     string
 	Referer    string
+	UserAgent  string
 	StatusCode int
 	BodyHash   string
 }
 
-// DomainResolver resolves packages for a fixed set of hostnames.
-// Each ecosystem file registers its own DomainResolver with the Chain.
+// Download is one request that named a package.
+type Download struct {
+	// Package is the identity in the URL; PkgMgr is the package manager that
+	// made the request.
+	Package resolver.PackageInfo
+
+	URL string
+
+	// Artifact reports whether the response was the package's artifact.
+	Artifact bool
+
+	// Digests of the response body.
+	Digests []resolver.Digest
+}
+
+// DomainResolver reads packages from requests to its hostnames.
 type DomainResolver interface {
 	// Domains returns the hostnames this resolver handles.
 	Domains() []string
-	// Resolve extracts recognized packages from all exchanges in the connection.
-	Resolve(conn NetworkConnection) []resolver.PackageInfo
+
+	// Parse returns the package a request names and whether the response was
+	// its artifact; ok is false if it names none.
+	Parse(conn NetworkConnection, ex NetworkExchange) (pkg resolver.PackageInfo, artifact, ok bool)
 }
 
 // Chain routes connections to the appropriate DomainResolver by hostname.
@@ -47,6 +67,7 @@ func NewChain() *Chain {
 		NewPythonNetworkResolver(),
 		NewJavaScriptNetworkResolver(),
 		NewRustNetworkResolver(),
+		NewJavaNetworkResolver(),
 	} {
 		for _, d := range r.Domains() {
 			c.byDomain[d] = r
@@ -55,27 +76,77 @@ func NewChain() *Chain {
 	return c
 }
 
-// ResolveAll resolves all connections, deduplicating by PURL.
-func (c *Chain) ResolveAll(conns []NetworkConnection) []resolver.PackageInfo {
-	seen := make(map[string]struct{})
-	var packages []resolver.PackageInfo
+// ResolveAll returns one Download per distinct (package, URL), sorted.
+func (c *Chain) ResolveAll(conns []NetworkConnection) []Download {
+	index := make(map[string]int)
+	var downloads []Download
+
 	for _, conn := range conns {
 		dr, ok := c.byDomain[conn.Hostname]
 		if !ok {
 			continue
 		}
-		for _, pkg := range dr.Resolve(conn) {
-			if pkg.PURL == "" {
+		for _, ex := range conn.Exchanges {
+			if !isSuccessful(ex.StatusCode) {
 				continue
 			}
-			if _, already := seen[pkg.PURL]; already {
+			pkg, artifact, ok := dr.Parse(conn, ex)
+			if !ok || pkg.PURL == "" {
 				continue
 			}
-			seen[pkg.PURL] = struct{}{}
-			packages = append(packages, pkg)
+			pkg.PkgMgr = clientPkgMgr(ex.UserAgent, conn.Hostname)
+
+			digests := attestation.AddDigest(nil, "sha256", ex.BodyHash)
+
+			key := pkg.PURL + "\x00" + ex.URL
+			if i, seen := index[key]; seen {
+				downloads[i].Digests = attestation.MergeDigests(downloads[i].Digests, digests)
+				attestation.SortDigests(downloads[i].Digests)
+				continue
+			}
+			index[key] = len(downloads)
+			downloads = append(downloads, Download{
+				Package:  pkg,
+				URL:      ex.URL,
+				Artifact: artifact,
+				Digests:  digests,
+			})
 		}
 	}
-	return packages
+
+	sort.SliceStable(downloads, func(i, j int) bool {
+		if downloads[i].Package.PURL != downloads[j].Package.PURL {
+			return downloads[i].Package.PURL < downloads[j].Package.PURL
+		}
+		return downloads[i].URL < downloads[j].URL
+	})
+	return downloads
+}
+
+// clientPkgMgr names the requesting package manager from its User-Agent.
+// Yarn berry sends "got", so its registry host identifies it instead.
+func clientPkgMgr(userAgent, hostname string) string {
+	ua := strings.ToLower(userAgent)
+	for _, m := range []struct{ prefix, pkgmgr string }{
+		{"pnpm/", "pnpm"},
+		{"npm/", "npm"},
+		{"yarn/", "yarn"},
+		{"pip/", "pip"},
+		{"uv/", "uv"},
+		{"conda/", "conda"},
+		{"cargo/", "cargo"},
+		{"go-http-client/", "go"},
+		{"apache-maven/", "maven"},
+		{"gradle/", "gradle"},
+	} {
+		if strings.HasPrefix(ua, m.prefix) {
+			return m.pkgmgr
+		}
+	}
+	if hostname == "registry.yarnpkg.com" {
+		return "yarn"
+	}
+	return ""
 }
 
 // ExtractConnections pulls NetworkConnection values from network-trace attestations.
@@ -145,12 +216,8 @@ func parseExchange(exMap map[string]interface{}) NetworkExchange {
 		ex.URL = strField(req, "url")
 		ex.Method = strField(req, "method")
 		if hdrs, ok := req["headers"].(map[string]interface{}); ok {
-			// Referer header is an array of strings in the witness format
-			if refRaw, ok := hdrs["Referer"].([]interface{}); ok && len(refRaw) > 0 {
-				if refStr, ok := refRaw[0].(string); ok {
-					ex.Referer = refStr
-				}
-			}
+			ex.Referer = firstHeader(hdrs, "Referer")
+			ex.UserAgent = firstHeader(hdrs, "User-Agent")
 		}
 	}
 
@@ -164,6 +231,16 @@ func parseExchange(exMap map[string]interface{}) NetworkExchange {
 	}
 
 	return ex
+}
+
+// firstHeader returns a header's first value.
+func firstHeader(hdrs map[string]interface{}, name string) string {
+	if raw, ok := hdrs[name].([]interface{}); ok && len(raw) > 0 {
+		if v, ok := raw[0].(string); ok {
+			return v
+		}
+	}
+	return ""
 }
 
 // isSuccessful returns true for 2xx responses or 0 (not captured).

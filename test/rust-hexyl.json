@@ -1,0 +1,316 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "static.crates.io"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "cargo/1.99.0 (5f94df478 2026-08-27)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://static.crates.io:443/crates/anstream/0.6.17/download"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "23a1e53f0f5d86382dafe1cf314783b2044280f406e7e1506368220ad11b1338",
+                        "size": 29445
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "static.crates.io"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "cargo/1.99.0 (5f94df478 2026-08-27)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://static.crates.io:443/crates/anstyle-parse/0.2.6/download"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "3b2d16507662817a6a20a9ea92df6652ee4f94f914589377d69f3b21bc5798a9",
+                        "size": 22343
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "static.crates.io"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "cargo/1.99.0 (5f94df478 2026-08-27)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://static.crates.io:443/crates/anstyle-query/1.1.2/download"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "79947af37f4177cfead1110013d678905c37501914fba0efea834c3fe9a8d60c",
+                        "size": 9969
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "static.crates.io"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "cargo/1.99.0 (5f94df478 2026-08-27)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://static.crates.io:443/crates/clap_complete/4.5.55/download"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "a5abde44486daf70c5be8b8f8f1b66c49f86236edf6fa2abadb4d961c4c6229a",
+                        "size": 48536
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "static.crates.io"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "cargo/1.99.0 (5f94df478 2026-08-27)"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://static.crates.io:443/crates/linux-raw-sys/0.4.14/download"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "78b3ae25bc7c8c38cec158d1f2757ee79e9b3740fbc7ccf0e59e4b08d793fa89",
+                        "size": 1826665
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/cargocache/hexyl/registry/CACHEDIR.TAG": {
+                  "sha256": "6d9d1d216e0f83abc5e5662ca62c92b4f23009466b54fa27321a69acdb778bb2"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/cache/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17.crate": {
+                  "sha256": "23a1e53f0f5d86382dafe1cf314783b2044280f406e7e1506368220ad11b1338"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/cache/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6.crate": {
+                  "sha256": "3b2d16507662817a6a20a9ea92df6652ee4f94f914589377d69f3b21bc5798a9"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/cache/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2.crate": {
+                  "sha256": "79947af37f4177cfead1110013d678905c37501914fba0efea834c3fe9a8d60c"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/cache/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55.crate": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/cache/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14.crate": {
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/index/index.crates.io-1949cf8c6b5b557f/.cache/3/s/syn": {
+                  "sha256": "f35e574cec97617c7ad87aef5c0b1add6ad4407d12b0371a2f203c2fa79f6159"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/.cargo-ok": {
+                  "sha256": "afbf9d0f3560b0fd7795e81c42a0a79ee6b6fc67e064f77826aee642cad28d91"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/.cargo_vcs_info.json": {
+                  "sha256": "d995653664e5ba36b96939b8d740386d2039e734e6a2fe013109340e06bcdb00"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/Cargo.lock": {
+                  "sha256": "64016b34f9220384306410dc1bc0c54e86458683605eb95a8877c11e4566fc19"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/Cargo.toml": {
+                  "sha256": "5308d32d7a03926de7247b5ad39d68a761c3aa7a96c3a6e354e1f4cd19ec6616"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/Cargo.toml.orig": {
+                  "sha256": "fc922f8e311df0f81d7fb85270c419d628a0cc7afff55e19a18a18d44b531a41"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/LICENSE-APACHE": {
+                  "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/LICENSE-MIT": {
+                  "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/README.md": {
+                  "sha256": "b230c2257d0c7a49b9bd97f2fa73abedcdc055757b5cedd2b0eb1a7a448ff461"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.17/benches/stream.rs": {
+                  "sha256": "72eaf3be51ee55deec3c8d086d3c92a8ee93be7d4acba88cd85ada237f17e0de"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/.cargo-ok": {
+                  "sha256": "afbf9d0f3560b0fd7795e81c42a0a79ee6b6fc67e064f77826aee642cad28d91"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/.cargo_vcs_info.json": {
+                  "sha256": "4bae8e112c7d3a3d355fc74ad67a82afe2802cbbc616c9cc69a8af82eae65484"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/Cargo.lock": {
+                  "sha256": "57086bfa666a6bfc294dfbfc33466ae893201a1f35385aa1c2b7f060fe4dd90a"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/Cargo.toml": {
+                  "sha256": "9c6fbf548a59370ce126a38243de1fc84449b78b83097bfda64723ed6a523afb"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/Cargo.toml.orig": {
+                  "sha256": "b3c3350232831a7dafc3d8cb1d0af5b518dff8818e70cf5b45056c3bc355a185"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/LICENSE-APACHE": {
+                  "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/LICENSE-MIT": {
+                  "sha256": "c1d4bc00896473e0109ccb4c3c7d21addb55a4ff1a644be204dcfce26612af2a"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/README.md": {
+                  "sha256": "abc82171d436ee0eb221838e8d21a21a2e392504e87f0c130b5eca6a35671e1e"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-parse-0.2.6/benches/parse.rs": {
+                  "sha256": "00747c503290b2e9171055861676e9037a555a8c968f58bade6c9411cee71e5f"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/.cargo-ok": {
+                  "sha256": "afbf9d0f3560b0fd7795e81c42a0a79ee6b6fc67e064f77826aee642cad28d91"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/.cargo_vcs_info.json": {
+                  "sha256": "dd78bc93e5d612d1ae8c9b689ca8315f847460df26a9f3fb4506239ce3922289"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/Cargo.lock": {
+                  "sha256": "c5323cd0dce77b8b0e58539fb74554d017d51f17a5ad853dff89f0db5abdfb18"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/Cargo.toml": {
+                  "sha256": "11639f4b2a85c8bc412d0b183f3ebcb2238a67a99144c0a38f387acd13346b9f"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/Cargo.toml.orig": {
+                  "sha256": "f538cd49bfedf0f3c986eb6e51615446a1cbee45bbb23f75680849e8afbe6471"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/LICENSE-APACHE": {
+                  "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/LICENSE-MIT": {
+                  "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/README.md": {
+                  "sha256": "94cda3914d2693b89e0b5855ffff04b971823f6cbae885a1610353254a269ed9"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/anstyle-query-1.1.2/examples/query.rs": {
+                  "sha256": "fca5f5f48a20d282982a4de584dd79470375d89bf990447b0c6f24e842956297"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/.cargo-ok": {
+                  "sha256": "afbf9d0f3560b0fd7795e81c42a0a79ee6b6fc67e064f77826aee642cad28d91"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/.cargo_vcs_info.json": {
+                  "sha256": "e849f64e465c7d8d67c2f8da5d8feb245272ebdddf9dac6bc4d7d859f077f62c"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/Cargo.lock": {
+                  "sha256": "c9e98ed6081af6f85ae14e1cb8d9f8446a297f19e60df4a6ef86dbff52592729"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/Cargo.toml": {
+                  "sha256": "7888213dcc2752fc88b9a3799c32e9ef60b594f7c847aaa128149863dec353eb"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/Cargo.toml.orig": {
+                  "sha256": "d1f203419a9fef2cc3b083741da71d667208a4d1d9c36c91ff737198cd9541be"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/LICENSE-APACHE": {
+                  "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/LICENSE-MIT": {
+                  "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/README.md": {
+                  "sha256": "7b7e689150ade2989ac67eed8f45bd48a048a98a366342bcb2e7126834ad5adf"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/clap_complete-4.5.55/examples/completion-derive.rs": {
+                  "sha256": "025f8405a14949fdfb0f22b8412abf67fe520569c8dc6519b13eb9d1ba81f14a"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/.cargo-ok": {
+                  "sha256": "afbf9d0f3560b0fd7795e81c42a0a79ee6b6fc67e064f77826aee642cad28d91"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/.cargo_vcs_info.json": {
+                  "sha256": "92856a204a7c01eb33a1cd26de25be16f1e4ccb9f8065f09e268a8f7add9ae70"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/CODE_OF_CONDUCT.md": {
+                  "sha256": "ccd9e538ce44713a2486cc8e4c01b8c8b846d1ccff15de728d8d6fa9a7f846cd"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/COPYRIGHT": {
+                  "sha256": "3290ae0fbc9ddb77d2239121d710f0bb9d31b3b4744e6d97fe01e652b4c1870b"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/Cargo.toml": {
+                  "sha256": "9f3cee7aeb120489fa47e599353716f3ec5ca962c6d3cd3f79447c521ac14614"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/Cargo.toml.orig": {
+                  "sha256": "8f1f3d47387c9eefaec65e6c4bc7916dc596a7faba2f7adc3595dfd343f97f22"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/LICENSE-APACHE": {
+                  "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/LICENSE-Apache-2.0_WITH_LLVM-exception": {
+                  "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+                },
+                "/home/jake/generate_att/cargocache/hexyl/registry/src/index.crates.io-1949cf8c6b5b557f/linux-raw-sys-0.4.14/LICENSE-MIT": {
+                  "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+                }
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

@@ -1,0 +1,249 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicate": {
+    "attestations": [
+      {
+        "attestation": {
+          "network_trace": {
+            "connections": [
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pnpm/10.34.6 npm/? node/v24.21.0 linux x64"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@actions/exec/-/exec-1.1.1.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "04b5af5e67e7f5761b1ef0c5d4bc4da488bdf5b2fdd70f45082bcadd87656664",
+                        "size": 14475
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pnpm/10.34.6 npm/? node/v24.21.0 linux x64"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@actions/cache/-/cache-4.1.0.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "c61da0a82a0ae8f070d7aff7285473cce6dad66d14b03a4e2284a92c6b073bc2",
+                        "size": 58358
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pnpm/10.34.6 npm/? node/v24.21.0 linux x64"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@actions/core/-/core-1.11.1.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "33f3967ca3f524628adfc0fc621f64adbda5fd7de937b5da406bfa493b50425e",
+                        "size": 23072
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              },
+              {
+                "destination": {
+                  "hostname": "registry.npmjs.org"
+                },
+                "http_exchanges": [
+                  {
+                    "request": {
+                      "headers": {
+                        "User-Agent": [
+                          "pnpm/10.34.6 npm/? node/v24.21.0 linux x64"
+                        ]
+                      },
+                      "method": "GET",
+                      "url": "https://registry.npmjs.org:443/@azure/core-paging/-/core-paging-1.6.2.tgz"
+                    },
+                    "response": {
+                      "body": {
+                        "hash": "6b95d2283eb88140e9f3effe4449e7835ebfe5a3b7d711884ea793f25856e951",
+                        "size": 9412
+                      },
+                      "status_code": 200
+                    }
+                  }
+                ],
+                "protocol": "https"
+              }
+            ]
+          }
+        },
+        "type": "https://witness.dev/attestations/network-trace/v0.1"
+      },
+      {
+        "attestation": {
+          "processes": [
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/package.json": {
+                  "sha256": "1d7d4a8ec0467fb044907aca7bbbb768897fecd4f3684a7e156d6660753be7ed"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/package.json": {
+                  "sha256": "31260da2deef1b7c355ca422fb7fa47d8ebdb6a54626dc39708f77a614bbf880"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/lib": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/package.json": {
+                  "sha256": "cc2a7e34c27d8dd399e7a84d4313bcd592f4f4f2fb1a94aef2ab7ef290117af3"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/@actions/exec/lib": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/@actions/exec/package.json": {
+                  "sha256": "cc2a7e34c27d8dd399e7a84d4313bcd592f4f4f2fb1a94aef2ab7ef290117af3"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/cache.js": {
+                  "sha256": "944c2dba9bfaec032538fbb7857ab89e642d18c3784505e9785674fadfd62498"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated/results": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated/results/api": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated/results/api/v1": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.js": {
+                  "sha256": "66bdbe612a24cc66a16b3ddedc24d633f07fe968088d122df72a28b89abe1762"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated/results/api/v1/cache.twirp-client.js": {
+                  "sha256": "2a9c000e1acaa09db89a0be8542d65a3d6e816adc1cd4851fc0671477a07c407"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/lib/generated/results/entities": {},
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/lib/exec.js": {
+                  "sha256": "788f7e11c14797c09ead32897900525754bc7afe60ea653b4786c7f3f995db7f"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.bin/esbuild": {
+                  "sha256": "5e60fadc69d7d5f1edeee1316218dbecd62f2600b7544c57bbd59f900c8dd08f"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/@actions/exec/package.json": {
+                  "sha256": "cc2a7e34c27d8dd399e7a84d4313bcd592f4f4f2fb1a94aef2ab7ef290117af3"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/command.js": {
+                  "sha256": "c3857a9de23b45981f7a8d5b934f611d01e1aed63a03f73d17ceca0f76c814f0"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/file-command.js": {
+                  "sha256": "17aa4013fc878a09c2ca6f879c9ddf839a570600d558d7879260df0bc8b8c804"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/utils.js": {
+                  "sha256": "8f237db26dedfd6f9243c9f2e344b452aa1cbb650781a09259c592a31743cd1f"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+cache@4.1.0/node_modules/@actions/cache/package.json": {
+                  "sha256": "1d7d4a8ec0467fb044907aca7bbbb768897fecd4f3684a7e156d6660753be7ed"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/package.json": {
+                  "sha256": "31260da2deef1b7c355ca422fb7fa47d8ebdb6a54626dc39708f77a614bbf880"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/package.json": {
+                  "sha256": "cc2a7e34c27d8dd399e7a84d4313bcd592f4f4f2fb1a94aef2ab7ef290117af3"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.bin/esbuild": {
+                  "sha256": "5e60fadc69d7d5f1edeee1316218dbecd62f2600b7544c57bbd59f900c8dd08f"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.bin/esbuild": {
+                  "sha256": "5e60fadc69d7d5f1edeee1316218dbecd62f2600b7544c57bbd59f900c8dd08f"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/core.js": {
+                  "sha256": "f9550a1d318824bf19d9e024abf5f6709ad8ebc522cae007cf286614cbad698d"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/oidc-utils.js": {
+                  "sha256": "871d37847902a1d8c7ce24b2272359e21b978b5b05fa9f72b734f6fa2b83fdc0"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/path-utils.js": {
+                  "sha256": "dc6ddc79f46717067270b70f26e1eca66e886b8f56bb8b6f1a25e4cbbbbcaac9"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/platform.js": {
+                  "sha256": "45ee4d91910de4993429cd95ded4a94858f5b864cadf20c4976abf51724193aa"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+core@1.11.1/node_modules/@actions/core/lib/summary.js": {
+                  "sha256": "80478c1b8a8d205b5185c3eb993176c26148881da8506bcdd038815ad12a6deb"
+                },
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules/.pnpm/@actions+exec@1.1.1/node_modules/@actions/exec/lib/toolrunner.js": {
+                  "sha256": "76502f03a6c9227aba032fe47ab7295088c974f0fcc4ef6c037e13a0b58361e2"
+                }
+              }
+            },
+            {
+              "openedfiles": {
+                "/home/jake/generate_att/projects/js/pnpm-action-setup/node_modules": {}
+              }
+            }
+          ]
+        },
+        "type": "https://witness.dev/attestations/command-run/v0.1"
+      }
+    ],
+    "name": "build"
+  },
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "subject": []
+}

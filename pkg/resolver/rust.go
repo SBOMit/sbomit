@@ -3,18 +3,23 @@ package resolver
 import (
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 )
 
 type RustResolver struct {
+	// Requires a trailing "/" so filenames (UTF-8-demo.txt) don't match.
 	crateDirWithVerRe *regexp.Regexp
 	crateFileWithVer  *regexp.Regexp
+	// registry/src/<index>/<name>-<version>/
+	registrySrcRe *regexp.Regexp
 }
 
 func NewRustResolver() *RustResolver {
 	return &RustResolver{
-		crateDirWithVerRe: regexp.MustCompile(`([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)(?:/|$)`),
+		crateDirWithVerRe: regexp.MustCompile(`([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)/`),
 		crateFileWithVer:  regexp.MustCompile(`([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)\.crate$`),
+		registrySrcRe:     regexp.MustCompile(`/registry/src/[^/]+/([^/]+)-([0-9][0-9A-Za-z\.\-\+]*)/`),
 	}
 }
 
@@ -22,8 +27,16 @@ func (r *RustResolver) Name() string {
 	return "rust"
 }
 
+// crate is one version of one crate; a registry often holds several versions.
+type crate struct {
+	name    string
+	version string
+}
+
+func (c crate) key() string { return c.name + "@" + c.version }
+
 func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remainingFiles []FileInfo) {
-	chosenByName := map[string]string{}
+	candidates := map[crate][]FileInfo{}
 
 	for _, f := range files {
 		pp := path.Clean(strings.TrimSpace(f.Path))
@@ -36,111 +49,105 @@ func (r *RustResolver) Resolve(files []FileInfo) (packages []PackageInfo, remain
 			continue
 		}
 
-		if m := r.crateFileWithVer.FindStringSubmatch(pp); len(m) == 3 {
-			if r.isCargoRegistryPath(pp) {
-				chosenByName[NormalizeRustCrateName(m[1])] = m[2]
-			}
-			continue
-		}
-
-		if name, version, ok := r.findLastCrateDirWithVer(pp); ok {
-			if r.isCargoRegistryPath(pp) || strings.Contains(pp, "/crates/") || strings.Contains(pp, "/registry/src/") {
-				chosenByName[NormalizeRustCrateName(name)] = version
-				continue
-			}
-			continue
+		if c, ok := r.identify(pp); ok {
+			candidates[c] = append(candidates[c], f)
 		}
 	}
 
-	for _, f := range files {
-		pp := path.Clean(strings.TrimSpace(f.Path))
+	// Pass every path on: crate files are assigned to their crate later, and
+	// FileFilter alone decides what is noise.
+	remainingFiles = append(remainingFiles, files...)
 
-		if !r.isRustPath(pp) {
-			remainingFiles = append(remainingFiles, f)
+	// Sorted for stable output.
+	keys := make([]crate, 0, len(candidates))
+	for c := range candidates {
+		if c.name == "" || c.version == "" {
 			continue
 		}
-
-		if r.isRustIgnoredPath(pp) {
-			continue
-		}
-
-		if r.isCompiledRustArtifact(pp) {
-			if r.isOwnedByKnownCrate(pp, chosenByName) {
-				continue
-			}
-		}
-
-		remainingFiles = append(remainingFiles, f)
+		keys = append(keys, c)
 	}
+	sort.Slice(keys, func(i, j int) bool { return keys[i].key() < keys[j].key() })
 
-	for name, version := range chosenByName {
-		if name == "" || version == "" {
-			continue
-		}
-		purlName := strings.ToLower(name)
-		purl := "pkg:cargo/" + purlName + "@" + version
+	for _, c := range keys {
+		// Other files are already in remainingFiles.
+		evidence, _ := pickEvidence(candidates[c], rankRustEvidence)
+
 		pkg := PackageInfo{
-			Name:      name,
-			Version:   version,
+			Name:      c.name,
+			Version:   c.version,
 			Ecosystem: "cargo",
-			PURL:      purl,
-			FoundBy:   "attestation:rust",
+			PURL:      "pkg:cargo/" + c.name + "@" + c.version,
+			PkgMgr:    "cargo",
+			Locations: []string{evidence.Path},
+			Artifact:  artifactFile(candidates[c], isCrateArtifact),
 		}
+
 		packages = append(packages, pkg)
 	}
 
 	return packages, remainingFiles
 }
 
-func (r *RustResolver) CreateFileFilters(packages []PackageInfo) []PackageFileFilter {
-	var filters []PackageFileFilter
+// isCrateArtifact reports whether a path is a .crate in the registry cache.
+func isCrateArtifact(p string) bool {
+	return strings.HasSuffix(strings.ToLower(p), ".crate") &&
+		strings.Contains(p, "/registry/cache/")
+}
+
+// rankRustEvidence prefers the .crate, then Cargo.toml.
+func rankRustEvidence(p string) int {
+	base := strings.ToLower(path.Base(p))
+	switch {
+	case isCrateArtifact(p):
+		return 3
+	case base == "cargo.toml":
+		return 2
+	case base == ".cargo-checksum.json":
+		return 0
+	default:
+		return 1
+	}
+}
+
+func (r *RustResolver) OwnershipFilters(packages []PackageInfo) []OwnershipFilter {
+	var filters []OwnershipFilter
 
 	for _, pkg := range packages {
 		if pkg.Ecosystem != "cargo" {
 			continue
 		}
 
-		filters = append(filters, &rustPackageFilter{
-			packageName: NormalizeRustCrateName(pkg.Name),
-			version:     pkg.Version,
+		name := strings.ToLower(NormalizeRustCrateName(pkg.Name))
+		ver := pkg.Version
+		if name == "" || ver == "" {
+			continue
+		}
+
+		// Precomputed, so matching doesn't concatenate on every comparison.
+		crateNeedle := "/" + name + "-" + ver + ".crate"
+		dirNeedle := "/" + name + "-" + ver + "/"
+
+		filters = append(filters, OwnershipFilter{
+			PURL: pkg.PURL,
+			Matcher: MatcherFunc(func(p Path) bool {
+				inRegistry := strings.Contains(p.Lower, "/registry/")
+				inCrates := strings.Contains(p.Lower, "/crates/")
+				if !inRegistry && !inCrates {
+					return false
+				}
+
+				if strings.Contains(p.Lower, "/registry/cache/") && strings.Contains(p.Lower, crateNeedle) {
+					return true
+				}
+				if strings.Contains(p.Lower, "/registry/src/") && strings.Contains(p.Lower, dirNeedle) {
+					return true
+				}
+				return inCrates && strings.Contains(p.Lower, dirNeedle)
+			}),
 		})
 	}
 
 	return filters
-}
-
-type rustPackageFilter struct {
-	packageName string
-	version     string
-}
-
-func (f *rustPackageFilter) Matches(p string) bool {
-	np := path.Clean(p)
-	npLower := strings.ToLower(np)
-
-	if !strings.Contains(npLower, "/registry/") && !strings.Contains(npLower, "/crates/") {
-		return false
-	}
-
-	name := strings.ToLower(f.packageName)
-	ver := f.version
-	if name == "" || ver == "" {
-		return false
-	}
-
-	if strings.Contains(npLower, "/registry/cache/") && strings.Contains(npLower, "/"+name+"-"+ver+".crate") {
-		return true
-	}
-
-	if strings.Contains(npLower, "/registry/src/") && strings.Contains(npLower, "/"+name+"-"+ver+"/") {
-		return true
-	}
-
-	if strings.Contains(npLower, "/crates/") && strings.Contains(npLower, "/"+name+"-"+ver+"/") {
-		return true
-	}
-
-	return false
 }
 
 func (r *RustResolver) isRustPath(p string) bool {
@@ -152,43 +159,37 @@ func (r *RustResolver) isRustPath(p string) bool {
 		strings.Contains(p, "Cargo.lock")
 }
 
-func (r *RustResolver) isCargoRegistryPath(p string) bool {
-	return strings.Contains(p, "/registry/cache/") ||
-		strings.Contains(p, "/registry/src/") ||
-		strings.Contains(p, "index.crates.io") ||
-		strings.Contains(p, ".crate")
-}
-
+// isRustIgnoredPath reports build output, which identifies no crate.
 func (r *RustResolver) isRustIgnoredPath(p string) bool {
 	return strings.Contains(p, "/.fingerprint/") || strings.Contains(p, "/target/")
 }
 
-func (r *RustResolver) isCompiledRustArtifact(p string) bool {
-	return strings.HasSuffix(p, ".d") ||
-		strings.HasSuffix(p, ".rlib") ||
-		strings.HasSuffix(p, ".rmeta") ||
-		strings.HasSuffix(p, ".so")
-}
+// identify returns the crate a registry path belongs to, trying the most
+// specific path pattern first. The index directory (index.crates.io-<hash>) looks
+// like a crate directory, so patterns are anchored on the registry subtree.
+func (r *RustResolver) identify(p string) (crate, bool) {
+	if strings.Contains(p, "/registry/cache/") {
+		if m := r.crateFileWithVer.FindStringSubmatch(p); len(m) == 3 {
+			return crate{NormalizeRustCrateName(m[1]), m[2]}, true
+		}
+		return crate{}, false
+	}
 
-func (r *RustResolver) isOwnedByKnownCrate(p string, chosenByName map[string]string) bool {
-	for name := range chosenByName {
-		if strings.HasPrefix(p, name+"/") || strings.Contains(p, "/"+name+"/") || strings.Contains(p, "/"+name+"-") {
-			return true
+	if m := r.registrySrcRe.FindStringSubmatch(p); len(m) == 3 {
+		return crate{NormalizeRustCrateName(m[1]), m[2]}, true
+	}
+
+	// Vendored crates: fall back to the last versioned directory.
+	if strings.Contains(p, "/crates/") {
+		if all := r.crateDirWithVerRe.FindAllStringSubmatch(p, -1); len(all) > 0 {
+			last := all[len(all)-1]
+			if len(last) == 3 {
+				return crate{NormalizeRustCrateName(last[1]), last[2]}, true
+			}
 		}
 	}
-	return false
-}
 
-func (r *RustResolver) findLastCrateDirWithVer(p string) (string, string, bool) {
-	allMatches := r.crateDirWithVerRe.FindAllStringSubmatch(p, -1)
-	if len(allMatches) == 0 {
-		return "", "", false
-	}
-	last := allMatches[len(allMatches)-1]
-	if len(last) != 3 {
-		return "", "", false
-	}
-	return last[1], last[2], true
+	return crate{}, false
 }
 
 // NormalizeRustCrateName lowercases and trims a Cargo crate name.

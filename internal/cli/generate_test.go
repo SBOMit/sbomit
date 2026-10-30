@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"bytes"
@@ -21,14 +21,14 @@ func TestRunGenerateStdoutAndStderrSeparation(t *testing.T) {
 	documentName = "sbomit-sbom"
 	documentVersion = "0.0.1"
 	authors = nil
-	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	attestationTypes = []string{"material", "command-run", "product"}
 	catalog = ""
 	catalogFile = ""
 	projectDir = ""
 	skipPaths = nil
 	summaryFlag = false
 
-	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "..", "test", "python-in-toto.json"))
 	if err != nil {
 		t.Fatalf("runGenerate returned error: %v", err)
 	}
@@ -65,14 +65,14 @@ func TestRunGenerateDetailedSummaryToStderrWithFileOutput(t *testing.T) {
 	documentName = "sbomit-sbom"
 	documentVersion = "0.0.1"
 	authors = nil
-	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	attestationTypes = []string{"material", "command-run", "product"}
 	catalog = ""
 	catalogFile = ""
 	projectDir = ""
 	skipPaths = nil
 	summaryFlag = true
 
-	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "..", "test", "python-in-toto.json"))
 	if err != nil {
 		t.Fatalf("runGenerate returned error: %v", err)
 	}
@@ -113,14 +113,14 @@ func TestRunGeneratePrintsEnrichmentSummaryWithCatalogFile(t *testing.T) {
 	documentName = "sbomit-sbom"
 	documentVersion = "0.0.1"
 	authors = nil
-	attestationTypes = []string{"material", "command-run", "product", "network-trace"}
+	attestationTypes = []string{"material", "command-run", "product"}
 	catalog = ""
 	catalogFile = catalogPath
 	projectDir = ""
 	skipPaths = nil
 	summaryFlag = false
 
-	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "test", "sample-attestation.json"))
+	stdout, stderr, err := captureGenerateOutput(t, filepath.Join("..", "..", "test", "python-in-toto.json"))
 	if err != nil {
 		t.Fatalf("runGenerate returned error: %v", err)
 	}

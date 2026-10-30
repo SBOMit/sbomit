@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/sbomit/sbomit/cmd"
+	"github.com/sbomit/sbomit/internal/cli"
 )
 
 func main() {
-	cmd.Execute()
+	cli.Execute()
 }

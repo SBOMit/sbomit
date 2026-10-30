@@ -19,12 +19,16 @@ type RustNetworkResolver struct {
 	crateRe *regexp.Regexp
 	// Matches API download endpoint: /api/v1/crates/{name}/{version}/download
 	apiRe *regexp.Regexp
+	// Matches static.crates.io's download endpoint, which has no filename:
+	// /crates/{name}/{version}/download
+	downloadRe *regexp.Regexp
 }
 
 func NewRustNetworkResolver() *RustNetworkResolver {
 	return &RustNetworkResolver{
-		crateRe: regexp.MustCompile(`^/crates/([^/]+)/[^/]+-([0-9][A-Za-z0-9._-]*)\.crate$`),
-		apiRe:   regexp.MustCompile(`^/api/v1/crates/([^/]+)/([0-9][A-Za-z0-9._-]*)/download$`),
+		crateRe:    regexp.MustCompile(`^/crates/([^/]+)/[^/]+-([0-9][A-Za-z0-9._-]*)\.crate$`),
+		apiRe:      regexp.MustCompile(`^/api/v1/crates/([^/]+)/([0-9][A-Za-z0-9._-]*)/download$`),
+		downloadRe: regexp.MustCompile(`^/crates/([^/]+)/([0-9][A-Za-z0-9._+-]*)/download$`),
 	}
 }
 
@@ -32,43 +36,20 @@ func (r *RustNetworkResolver) Domains() []string {
 	return rustNetworkDomains
 }
 
-func (r *RustNetworkResolver) Resolve(conn NetworkConnection) []resolver.PackageInfo {
-	seen := make(map[string]struct{})
-	var packages []resolver.PackageInfo
-
-	for _, ex := range conn.Exchanges {
-		if !isSuccessful(ex.StatusCode) {
-			continue
-		}
-
-		name, version, ok := r.parseURL(ex.URL)
-		if !ok {
-			continue
-		}
-
-		name = resolver.NormalizeRustCrateName(name)
-		purl := "pkg:cargo/" + name + "@" + version
-		if _, already := seen[purl]; already {
-			continue
-		}
-		seen[purl] = struct{}{}
-
-		pkg := resolver.PackageInfo{
-			Name:        name,
-			Version:     version,
-			Ecosystem:   "cargo",
-			PURL:        purl,
-			FoundBy:     "network:rust",
-			DownloadURL: ex.URL,
-			DownloadIP:  conn.IP,
-		}
-		if ex.BodyHash != "" {
-			pkg.Hashes = map[string]string{"sha256": ex.BodyHash}
-		}
-		packages = append(packages, pkg)
+// Parse reads a crate from a download request; index lookups are ignored.
+func (r *RustNetworkResolver) Parse(_ NetworkConnection, ex NetworkExchange) (resolver.PackageInfo, bool, bool) {
+	name, version, ok := r.parseURL(ex.URL)
+	if !ok {
+		return resolver.PackageInfo{}, false, false
 	}
 
-	return packages
+	name = resolver.NormalizeRustCrateName(name)
+	return resolver.PackageInfo{
+		Name:      name,
+		Version:   version,
+		Ecosystem: "cargo",
+		PURL:      "pkg:cargo/" + name + "@" + version,
+	}, true, true
 }
 
 func (r *RustNetworkResolver) parseURL(rawURL string) (name, version string, ok bool) {
@@ -77,12 +58,17 @@ func (r *RustNetworkResolver) parseURL(rawURL string) (name, version string, ok 
 		return "", "", false
 	}
 
+	// Tried first: the other shapes share its /crates/<name>/ prefix.
+	if matches := r.downloadRe.FindStringSubmatch(u.Path); len(matches) == 3 {
+		return resolver.NormalizeRustCrateName(matches[1]), matches[2], true
+	}
+
 	if matches := r.crateRe.FindStringSubmatch(u.Path); len(matches) == 3 {
-		return matches[1], matches[2], true
+		return resolver.NormalizeRustCrateName(matches[1]), matches[2], true
 	}
 
 	if matches := r.apiRe.FindStringSubmatch(u.Path); len(matches) == 3 {
-		return matches[1], matches[2], true
+		return resolver.NormalizeRustCrateName(matches[1]), matches[2], true
 	}
 
 	return "", "", false

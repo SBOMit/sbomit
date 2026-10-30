@@ -47,8 +47,8 @@ func (c *ExtractorChain) ExtractAll(attestations []TypedAttestation, typeFilter 
 		}
 	}
 
-	// Deduplicate files by path
-	seenPaths := make(map[string]struct{})
+	// One entry per path, merging digests across attestations.
+	index := make(map[string]int)
 
 	for _, att := range attestations {
 		if len(filterSet) > 0 {
@@ -62,13 +62,14 @@ func (c *ExtractorChain) ExtractAll(attestations []TypedAttestation, typeFilter 
 			continue
 		}
 
-		extracted := extractor.Extract(att.Data)
-
-		for _, f := range extracted {
-			if _, seen := seenPaths[f.Path]; !seen {
-				seenPaths[f.Path] = struct{}{}
-				files = append(files, f)
+		for _, f := range extractor.Extract(att.Data) {
+			if i, seen := index[f.Path]; seen {
+				files[i].Digests = MergeDigests(files[i].Digests, f.Digests)
+				SortDigests(files[i].Digests)
+				continue
 			}
+			index[f.Path] = len(files)
+			files = append(files, f)
 		}
 	}
 

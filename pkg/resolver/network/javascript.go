@@ -10,6 +10,7 @@ import (
 // JavaScript/npm package registry domains.
 var jsNetworkDomains = []string{
 	"registry.npmjs.org",
+	"registry.yarnpkg.com",
 	"npm.pkg.github.com",
 }
 
@@ -35,57 +36,28 @@ func (r *JavaScriptNetworkResolver) Domains() []string {
 	return jsNetworkDomains
 }
 
-func (r *JavaScriptNetworkResolver) Resolve(conn NetworkConnection) []resolver.PackageInfo {
-	seen := make(map[string]struct{})
-	var packages []resolver.PackageInfo
-
-	for _, ex := range conn.Exchanges {
-		if !isSuccessful(ex.StatusCode) {
-			continue
-		}
-
-		name, version, ok := r.parseURL(ex.URL)
-		if !ok {
-			continue
-		}
-
-		purl := "pkg:npm/" + name + "@" + version
-		if _, already := seen[purl]; already {
-			continue
-		}
-		seen[purl] = struct{}{}
-
-		pkg := resolver.PackageInfo{
-			Name:        name,
-			Version:     version,
-			Ecosystem:   "npm",
-			PURL:        purl,
-			FoundBy:     "network:javascript",
-			DownloadURL: ex.URL,
-			DownloadIP:  conn.IP,
-		}
-		if ex.BodyHash != "" {
-			pkg.Hashes = map[string]string{"sha256": ex.BodyHash}
-		}
-		packages = append(packages, pkg)
-	}
-
-	return packages
-}
-
-func (r *JavaScriptNetworkResolver) parseURL(rawURL string) (name, version string, ok bool) {
-	u, err := url.Parse(rawURL)
+// Parse reads a package from a registry request: the .tgz is the artifact,
+// /<name>/<version> is metadata.
+func (r *JavaScriptNetworkResolver) Parse(_ NetworkConnection, ex NetworkExchange) (resolver.PackageInfo, bool, bool) {
+	u, err := url.Parse(ex.URL)
 	if err != nil {
-		return "", "", false
+		return resolver.PackageInfo{}, false, false
 	}
 
-	if matches := r.tgzRe.FindStringSubmatch(u.Path); len(matches) == 3 {
-		return resolver.NormalizeNpmPackageName(matches[1]), matches[2], true
+	name, version, artifact := "", "", false
+	if m := r.tgzRe.FindStringSubmatch(u.Path); len(m) == 3 {
+		name, version, artifact = m[1], m[2], true
+	} else if m := r.metaRe.FindStringSubmatch(u.Path); len(m) == 3 {
+		name, version = m[1], m[2]
+	} else {
+		return resolver.PackageInfo{}, false, false
 	}
 
-	if matches := r.metaRe.FindStringSubmatch(u.Path); len(matches) == 3 {
-		return resolver.NormalizeNpmPackageName(matches[1]), matches[2], true
-	}
-
-	return "", "", false
+	name = resolver.NormalizeNpmPackageName(name)
+	return resolver.PackageInfo{
+		Name:      name,
+		Version:   version,
+		Ecosystem: "npm",
+		PURL:      "pkg:npm/" + name + "@" + version,
+	}, artifact, true
 }

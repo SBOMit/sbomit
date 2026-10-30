@@ -32,64 +32,38 @@ func (r *GoNetworkResolver) Domains() []string {
 	return goNetworkDomains
 }
 
-func (r *GoNetworkResolver) Resolve(conn NetworkConnection) []resolver.PackageInfo {
-	seen := make(map[string]struct{})
-	var packages []resolver.PackageInfo
-
-	for _, ex := range conn.Exchanges {
-		if !isSuccessful(ex.StatusCode) {
-			continue
-		}
-
-		// storage.googleapis.com serves Go module zips redirected from the proxy.
-		// The Referer header holds the original proxy.golang.org URL, which is
-		// also the canonical URL to record.
-		urlToParse := ex.URL
-		downloadURL := ex.URL
-		if conn.Hostname == "storage.googleapis.com" && strings.Contains(ex.Referer, "proxy.golang.org") {
-			urlToParse = ex.Referer
-			downloadURL = ex.Referer
-		}
-
-		module, version, ok := r.parseProxyURL(urlToParse)
-		if !ok {
-			continue
-		}
-
-		purl := "pkg:golang/" + module + "@" + version
-		if _, already := seen[purl]; already {
-			continue
-		}
-		seen[purl] = struct{}{}
-
-		pkg := resolver.PackageInfo{
-			Name:        module,
-			Version:     version,
-			Ecosystem:   "golang",
-			PURL:        purl,
-			FoundBy:     "network:go",
-			DownloadURL: downloadURL,
-			DownloadIP:  conn.IP,
-		}
-		if ex.BodyHash != "" {
-			pkg.Hashes = map[string]string{"sha256": ex.BodyHash}
-		}
-		packages = append(packages, pkg)
+// Parse reads a module from a proxy request. Only the .zip is the artifact;
+// .info and .mod are metadata.
+func (r *GoNetworkResolver) Parse(conn NetworkConnection, ex NetworkExchange) (resolver.PackageInfo, bool, bool) {
+	// Redirected zips: the Referer holds the proxy URL.
+	urlToParse := ex.URL
+	if conn.Hostname == "storage.googleapis.com" && strings.Contains(ex.Referer, "proxy.golang.org") {
+		urlToParse = ex.Referer
 	}
 
-	return packages
+	module, version, ext, ok := r.parseProxyURL(urlToParse)
+	if !ok {
+		return resolver.PackageInfo{}, false, false
+	}
+
+	return resolver.PackageInfo{
+		Name:      module,
+		Version:   version,
+		Ecosystem: "golang",
+		PURL:      resolver.GoPURL(module, version),
+	}, ext == "zip", true
 }
 
-func (r *GoNetworkResolver) parseProxyURL(rawURL string) (module, version string, ok bool) {
+func (r *GoNetworkResolver) parseProxyURL(rawURL string) (module, version, ext string, ok bool) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
-		return "", "", false
+		return "", "", "", false
 	}
 
 	matches := r.proxyPathRe.FindStringSubmatch(u.Path)
-	if len(matches) < 3 {
-		return "", "", false
+	if len(matches) != 4 {
+		return "", "", "", false
 	}
 
-	return resolver.DecodeGoModulePath(matches[1]), matches[2], true
+	return resolver.DecodeGoModulePath(matches[1]), matches[2], matches[3], true
 }
