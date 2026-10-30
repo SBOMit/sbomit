@@ -37,8 +37,8 @@ type Result struct {
 	// Files are the attested paths, both those belonging to a package and
 	// those no package claimed. Ownership is in Relationships rather than
 	// implied by presence here.
-	// [Options.OmitOwnedFiles] narrows this to just the unclaimed paths
-	// [Result.UnownedFiles] does the same after.
+	// [Options.OmitOwnedFiles] narrows this to just the unclaimed paths;
+	// [Result.UnownedFiles] does the same after resolving.
 	Files []File
 
 	// Relationships map packages to the paths they own.
@@ -125,9 +125,8 @@ const (
 
 // Relationship links a package to a path.
 //
-// ToPath is a path rather than a reference to a File because owned files are
-// not emitted as file nodes by default, so it will typically name a path with
-// no entry in [Result.Files].
+// ToPath is a path rather than a reference to a File, since with
+// [Options.OmitOwnedFiles] it names a path with no entry in [Result.Files].
 type Relationship struct {
 	Type          RelationshipType
 	FromPackageID string

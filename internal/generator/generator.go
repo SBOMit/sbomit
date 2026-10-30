@@ -511,8 +511,6 @@ func (g *Generator) getOutputFormat() formats.Format {
 	switch strings.ToLower(g.opts.OutputFormat) {
 	case "spdx23", "spdx-2.3", "spdx23json":
 		return formats.SPDX23JSON
-	case "spdx22", "spdx-2.2", "spdx22json":
-		return formats.SPDX22JSON
 	case "cdx14", "cdx-1.4", "cdx14json", "cyclonedx14":
 		return formats.CDX14JSON
 	case "cdx15", "cdx-1.5", "cdx15json", "cyclonedx15":
