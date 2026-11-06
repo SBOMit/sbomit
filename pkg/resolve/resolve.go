@@ -47,12 +47,12 @@ func ResolveAttestations(attestations []attestation.TypedAttestation, opts Optio
 	// caller's decision.
 	downloads := network.NewChain().ResolveAll(network.ExtractConnections(attestations))
 
-	return assemble(resolved, files, downloads, opts), nil
+	return assemble(resolved, files, downloads), nil
 }
 
 // assemble builds the public Result: one Package per PURL with evidence from
-// paths and requests, plus files and their ownership.
-func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, downloads []network.Download, opts Options) *Result {
+// paths and requests and the files it owns, plus the unclaimed files.
+func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, downloads []network.Download) *Result {
 	out := &Result{}
 
 	digestsByPath := make(map[string][]Digest, len(observed))
@@ -68,7 +68,6 @@ func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, do
 		}
 		index[info.PURL] = len(out.Packages)
 		out.Packages = append(out.Packages, Package{
-			ID:        packageID(info.PURL),
 			Name:      info.Name,
 			Version:   info.Version,
 			Ecosystem: info.Ecosystem,
@@ -102,48 +101,18 @@ func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, do
 		pkg.Digests = packageDigest(pkg.Ecosystem, pkg.Evidence)
 	}
 
-	idByPURL := make(map[string]string, len(out.Packages))
-	for _, pkg := range out.Packages {
-		idByPURL[pkg.PURL] = pkg.ID
-	}
-
-	// Cited paths become evident-by edges; other owned files, contains.
-	evidence := make(map[string]struct{})
-	for _, pkg := range resolved.Packages {
-		for _, loc := range pkg.Locations {
-			evidence[pkg.PURL+"\x00"+loc] = struct{}{}
-		}
-	}
-
+	// resolved.Owned is sorted by path within each owner.
 	for _, owned := range resolved.Owned {
-		id, ok := idByPURL[owned.OwnerPURL]
-		if !ok {
-			continue
-		}
-
-		relType := Contains
-		if _, isEvidence := evidence[owned.OwnerPURL+"\x00"+owned.Path]; isEvidence {
-			relType = EvidentBy
-		}
-
-		out.Relationships = append(out.Relationships, Relationship{
-			Type:          relType,
-			FromPackageID: id,
-			ToPath:        owned.Path,
-		})
-
-		if !opts.OmitOwnedFiles {
-			out.Files = append(out.Files, File{Path: owned.Path, Digests: copyDigests(owned.Digests)})
-		}
+		i := index[owned.OwnerPURL]
+		out.Packages[i].Files = append(out.Packages[i].Files,
+			File{Path: owned.Path, Digests: copyDigests(owned.Digests)})
 	}
 
-	// Files that no package claimed.
 	for _, f := range resolved.Files {
 		out.Files = append(out.Files, File{Path: f.Path, Digests: copyDigests(f.Digests)})
 	}
 
-	// Sorted for reproducible output; Relationships follow resolved.Owned,
-	// which is already sorted.
+	// Sorted for reproducible output.
 	sort.Slice(out.Packages, func(i, j int) bool { return out.Packages[i].PURL < out.Packages[j].PURL })
 	sort.Slice(out.Files, func(i, j int) bool { return out.Files[i].Path < out.Files[j].Path })
 

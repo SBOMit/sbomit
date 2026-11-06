@@ -23,40 +23,26 @@
 // [ResolveAttestations].
 package resolve
 
-import (
-	"crypto/sha256"
-	"encoding/hex"
-
-	"github.com/sbomit/sbomit/pkg/attestation"
-)
+import "github.com/sbomit/sbomit/pkg/attestation"
 
 // Result is what resolving an attestation yields.
 type Result struct {
 	Packages []Package
 
-	// Files are the attested paths, both those belonging to a package and
-	// those no package claimed. Ownership is in Relationships rather than
-	// implied by presence here.
-	// [Options.OmitOwnedFiles] narrows this to just the unclaimed paths;
-	// [Result.UnownedFiles] does the same after resolving.
+	// Files are the attested paths no package claimed. A package's own files
+	// are in [Package.Files].
 	Files []File
-
-	// Relationships map packages to the paths they own.
-	Relationships []Relationship
 }
 
 // Package is one package the attestation shows, from paths, requests, or both.
 type Package struct {
-	// ID is stable across runs for the same package identity and is what
-	// [Relationship.FromPackageID] refers to. Treat it as opaque.
-	ID string
-
 	Name    string
 	Version string
 
 	// Ecosystem is the PURL type: pypi, conda, golang, cargo, npm, maven.
 	Ecosystem string
 
+	// PURL identifies the package; a Result has one Package per PURL.
 	PURL string
 
 	// Evidence is every path and request the package was identified from,
@@ -69,6 +55,9 @@ type Package struct {
 	// artifact evidence agrees. Other ecosystems' artifact hashes stay on
 	// Evidence.
 	Digests []Digest
+
+	// Files are the paths the package owns, including its path evidence.
+	Files []File
 }
 
 // Source says where a piece of evidence came from.
@@ -110,59 +99,3 @@ type File struct {
 
 // Digest is a hash algorithm and its hex-encoded value.
 type Digest = attestation.Digest
-
-// RelationshipType describes how a package relates to a path.
-type RelationshipType string
-
-const (
-	// Contains means the package owns the file at ToPath.
-	Contains RelationshipType = "contains"
-
-	// EvidentBy means the file at ToPath is what identified the package. Every
-	// EvidentBy path is also contained by the package.
-	EvidentBy RelationshipType = "evident-by"
-)
-
-// Relationship links a package to a path.
-//
-// ToPath is a path rather than a reference to a File, since with
-// [Options.OmitOwnedFiles] it names a path with no entry in [Result.Files].
-type Relationship struct {
-	Type          RelationshipType
-	FromPackageID string
-	ToPath        string
-}
-
-// UnownedFiles returns the files no package claimed
-func (r *Result) UnownedFiles() []File {
-	owned := make(map[string]struct{}, len(r.Relationships))
-	for _, rel := range r.Relationships {
-		owned[rel.ToPath] = struct{}{}
-	}
-
-	out := make([]File, 0, len(r.Files))
-	for _, f := range r.Files {
-		if _, ok := owned[f.Path]; ok {
-			continue
-		}
-		out = append(out, f)
-	}
-	return out
-}
-
-// PackageByID returns the package with the given ID, or false if none.
-func (r *Result) PackageByID(id string) (Package, bool) {
-	for _, p := range r.Packages {
-		if p.ID == id {
-			return p, true
-		}
-	}
-	return Package{}, false
-}
-
-// packageID derives a stable identifier from a package's identity. It must be
-// deterministic across runs, since consumers may persist or diff results.
-func packageID(purl string) string {
-	sum := sha256.Sum256([]byte(purl))
-	return hex.EncodeToString(sum[:8])
-}

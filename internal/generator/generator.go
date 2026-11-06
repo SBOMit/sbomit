@@ -31,6 +31,9 @@ type Options struct {
 	CatalogFile      string
 	ProjectDir       string
 	SkipPaths        []string
+	// IncludeOwnedFiles adds file nodes for files a package owns; by default
+	// only unclaimed files are listed.
+	IncludeOwnedFiles bool
 }
 
 // DefaultOptions returns default generator options
@@ -133,8 +136,8 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 		return nil, fmt.Errorf("failed to resolve attestations: %w", err)
 	}
 
-	// The CLI's package policy; see policy.go.
-	result = selectPackages(result)
+	// The CLI's processing rules; see rules.go.
+	result = applyRules(result)
 
 	attDoc := g.createDocument(result)
 
@@ -164,7 +167,7 @@ func (g *Generator) createDocument(result *resolve.Result) *sbom.Document {
 
 	doc.Metadata.Tools = append(doc.Metadata.Tools, &sbom.Tool{
 		Name:    "sbomit",
-		Version: "0.0.1",
+		Version: "v0.3.0",
 		Vendor:  "SBOMit",
 	})
 
@@ -177,30 +180,48 @@ func (g *Generator) createDocument(result *resolve.Result) *sbom.Document {
 
 	doc.NodeList.AddRootNode(appNode)
 
-	// Add resolved packages
+	// contains puts a child under its parent. Each parent has one contains
+	// edge listing all its children.
+	edges := make(map[string]*sbom.Edge)
+	contains := func(from, to string) {
+		if e, ok := edges[from]; ok {
+			e.To = append(e.To, to)
+			return
+		}
+		e := &sbom.Edge{Type: sbom.Edge_contains, From: from, To: []string{to}}
+		edges[from] = e
+		doc.NodeList.AddEdge(e)
+	}
+
+	// Each file under its package, or under the application if unclaimed.
+	type fileEntry struct {
+		file   resolve.File
+		parent string
+	}
+	var files []fileEntry
+
 	for _, pkg := range result.Packages {
 		node := g.createPackageNode(pkg)
 		doc.NodeList.AddNode(node)
-		doc.NodeList.RelateNodeAtID(node, appNode.Id, sbom.Edge_contains)
-	}
+		contains(appNode.Id, node.Id)
 
-	// To know which package owns which path
-	ownerByPath := make(map[string]string, len(result.Relationships))
-	for _, rel := range result.Relationships {
-		if pkg, ok := result.PackageByID(rel.FromPackageID); ok {
-			ownerByPath[rel.ToPath] = pkg.PURL
+		if g.opts.IncludeOwnedFiles {
+			for _, f := range pkg.Files {
+				files = append(files, fileEntry{f, node.Id})
+			}
 		}
 	}
+	for _, f := range result.Files {
+		files = append(files, fileEntry{f, appNode.Id})
+	}
 
-	for _, file := range result.Files {
-		node := g.createFileNode(file)
+	// File nodes in path order, owned and unclaimed together.
+	sort.Slice(files, func(i, j int) bool { return files[i].file.Path < files[j].file.Path })
+
+	for _, e := range files {
+		node := g.createFileNode(e.file)
 		doc.NodeList.AddNode(node)
-
-		if ownerID, owned := ownerByPath[file.Path]; owned {
-			doc.NodeList.RelateNodeAtID(node, ownerID, sbom.Edge_contains)
-			continue
-		}
-		doc.NodeList.RelateNodeAtID(node, appNode.Id, sbom.Edge_contains)
+		contains(e.parent, node.Id)
 	}
 
 	return doc

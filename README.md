@@ -28,6 +28,7 @@ Flags:
       --catalog-file string  Existing SBOM catalog file to merge with attestation-derived packages
   -f, --format string        SBOM output format (supported: spdx23, cdx14, cdx15) (default "spdx23")
   -h, --help                 help for generate
+      --include-owned-files  Also list the files each package owns (default: only files no package owns)
   -n, --name string          Name for the SBOM document (default "sbomit-sbom")
   -o, --output string        Output file path (default: stdout)
       --project-dir string   Project directory to scan with the cataloger (default: current directory)
@@ -80,12 +81,14 @@ bundle, _ := os.ReadFile("attestation.json")
 result, err := resolve.Resolve(bundle, resolve.Options{})
 ```
 
-The result has three lists: `Packages`, `Files` and `Relationships`. For one package from a pip build (paths shortened):
+The result has two lists: `Packages`, each with the files it owns, and `Files`, the paths no package claimed. From a pip build (paths shortened):
 
 ```go
-resolve.Package{
-    ID: "0171d0cf40b8148f", Name: "attrs", Version: "26.1.0", Ecosystem: "pypi",
+resolve.Result{
+  Packages: []resolve.Package{{
+    Name: "attrs", Version: "26.1.0", Ecosystem: "pypi",
     PURL: "pkg:pypi/attrs@26.1.0",
+    // How attrs was identified.
     Evidence: []resolve.Evidence{
         {Source: "path", PkgMgr: "pip", Location: ".../site-packages/attrs-26.1.0.dist-info/METADATA"},
         {Source: "path", PkgMgr: "pip", Location: "/tmp/pip-unpack-.../attrs-26.1.0-py3-none-any.whl", Artifact: true},
@@ -95,27 +98,41 @@ resolve.Package{
             Digests: []resolve.Digest{{Algorithm: "sha256", Value: "4cd40e69..."}}},
     },
     Digests: []resolve.Digest{{Algorithm: "sha256", Value: "c647aa4a..."}},
+    // What attrs owns: its path evidence, plus every other file it installed.
+    Files: []resolve.File{
+        {Path: ".../site-packages/attrs-26.1.0.dist-info/METADATA"}, // also path evidence
+        {Path: ".../site-packages/attrs-26.1.0.dist-info/RECORD", Digests: []resolve.Digest{{Algorithm: "sha256", Value: "ece8bf03..."}}},
+        {Path: ".../site-packages/attrs/__init__.py", Digests: []resolve.Digest{{Algorithm: "sha256", Value: "47168064..."}}},
+        {Path: ".../site-packages/attrs/converters.py", Digests: []resolve.Digest{{Algorithm: "sha256", Value: "f244258e..."}}},
+        {Path: "/tmp/pip-unpack-.../attrs-26.1.0-py3-none-any.whl"}, // also path evidence
+        // ...
+    },
+  }},
+  // Paths no package claimed: the project's own files, system libraries, and so on.
+  Files: []resolve.File{
+    {Path: "in_toto/models/metadata.py", Digests: []resolve.Digest{{Algorithm: "sha256", Value: "dfac528d..."}}},
+    {Path: "/lib/x86_64-linux-gnu/liblzma.so.5", Digests: []resolve.Digest{{Algorithm: "sha256", Value: "696e868d..."}}},
+    // ...
+  },
 }
-
-resolve.File{Path: ".../attrs-26.1.0.dist-info/RECORD", Digests: []resolve.Digest{{Algorithm: "sha256", Value: "ece8bf03..."}}}
-
-resolve.Relationship{Type: "evident-by", FromPackageID: "0171d0cf40b8148f", ToPath: ".../attrs-26.1.0.dist-info/METADATA"}
-resolve.Relationship{Type: "contains", FromPackageID: "0171d0cf40b8148f", ToPath: ".../site-packages/attrs/__init__.py"}
 ```
 
-- `Evidence` is every attested path (`Source: "path"`) and network-trace request (`Source: "network"`) the package was found from, with the package manager (`pip`, `conda`, `npm`, `pnpm`, `yarn`, `go`, `cargo`, `maven`, `gradle`, or empty if unknown). `Artifact` marks the file the registry publishes, as opposed to metadata or a file inside the package.
-- `Package.Digests` is the artifact's sha256, set only for pypi, cargo and conda, whose registries publish that value. Other ecosystems' hashes stay on their `Evidence`.
-- `Files` is every attested path with its recorded digests. `Relationships` say which package owns (`contains`) or was identified by (`evident-by`) each path.
+- `Package.Evidence` is every attested path (`Source: "path"`) and network-trace request (`Source: "network"`) the package was found from, with the package manager (`pip`, `conda`, `npm`, `pnpm`, `yarn`, `go`, `cargo`, `maven`, `gradle`, or empty if unknown). `Artifact` marks the file the registry publishes, as opposed to metadata or a file inside the package.
+- `Package.Digests` is the artifact's sha256, set only for pypi, cargo and conda, whose registries publish that value. Other ecosystems' hashes are in their `Package.Evidence`.
+- `Package.Evidence` and `Package.Files` answer different questions. `Evidence` is how the package was identified: the few patterns that let you identify a unique package. `Package.Files` is everything it owns, usually far more.
+- `Files` are the attested paths no package claimed.
 
-This data allows you to apply your own policy to reason about how you handle each ecosystem and/or package manager.
+This data allows you to apply your own rules for how you handle each ecosystem and/or package manager.
 
 ### Library and CLI
 
-The library reports everything in the attestation and makes no choice about which packages to list. The `sbomit` CLI applies its own policy on top (`internal/generator/policy.go`, not part of the library):
+The library reports everything in the attestation and makes no choice about what goes in the SBOM. The `sbomit` CLI reads the result with its own processing rules, set per ecosystem and package manager (`internal/generator/rules.go`, not part of the library):
 
-TLDR of the current policy:
-- Package names and versions come from install paths. A package with path evidence is listed, and its network requests are additional provenance.
-- A package seen only in the network trace is not listed, since package managers download more than they install. The exception is npm: its `node_modules/<name>/` paths carry no version, so a `.tgz` downloaded by npm is listed.
+- Default: install paths are the source of packages, and network requests are additional provenance. A package seen only in the network trace is not listed, since package managers download more than they install.
+- npm: its `node_modules/<name>/` paths carry no version, so the network requests are the source.
+
+By default the SBOM lists packages and only the files no package owns.
+`--include-owned-files` also lists each package's files.
 
 ## Development
 

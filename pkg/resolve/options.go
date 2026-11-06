@@ -9,10 +9,6 @@ type Options struct {
 	// ExcludePaths are filepath.Match globs applied on top of the built-in
 	// filter that already removes caches, build scratch and other noise.
 	ExcludePaths []string
-
-	// OmitOwnedFiles leaves only unclaimed paths in Result.Files. Ownership is
-	// in Result.Relationships either way.
-	OmitOwnedFiles bool
 }
 
 // defaultAttestationTypes are the attestation types parsed when

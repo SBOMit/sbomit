@@ -10,17 +10,18 @@ import (
 )
 
 var (
-	outputPath       string
-	outputFormat     string
-	documentName     string
-	documentVersion  string
-	authors          []string
-	attestationTypes []string
-	catalog          string
-	catalogFile      string
-	projectDir       string
-	skipPaths        []string
-	summaryFlag      bool
+	outputPath        string
+	outputFormat      string
+	documentName      string
+	documentVersion   string
+	authors           []string
+	attestationTypes  []string
+	catalog           string
+	catalogFile       string
+	projectDir        string
+	skipPaths         []string
+	summaryFlag       bool
+	includeOwnedFiles bool
 )
 
 var generateCmd = &cobra.Command{
@@ -36,6 +37,9 @@ A network-trace attestation, where present, adds the requests the build made.
 Every package with a path showing it installed is listed. A package seen only
 in a download is listed only where the package manager's install paths could
 never have shown it.
+
+By default the SBOM lists packages and only the files no package owns;
+--include-owned-files also lists each package's files.
 
 A package checksum is emitted only where it is the sha256 the registry
 publishes for the artifact: PyPI, crates.io and conda channels.
@@ -73,6 +77,7 @@ func init() {
 	generateCmd.Flags().StringVar(&projectDir, "project-dir", "", "Project directory to scan with the cataloger (default: current directory)")
 	generateCmd.Flags().StringSliceVar(&skipPaths, "skip-path", []string{}, "Exclude paths matching glob pattern")
 	generateCmd.Flags().BoolVar(&summaryFlag, "summary", false, "Also print per-package details under each ecosystem (default: only ecosystem counts are shown)")
+	generateCmd.Flags().BoolVar(&includeOwnedFiles, "include-owned-files", false, "Also list the files each package owns (default: only files no package owns)")
 }
 
 func runGenerate(attestationFile string) error {
@@ -104,16 +109,17 @@ func runGenerate(attestationFile string) error {
 	}
 
 	opts := &generator.Options{
-		DocumentName:     documentName,
-		DocumentVersion:  documentVersion,
-		Authors:          authors,
-		AttestationTypes: attestationTypes,
-		OutputFormat:     outputFormat,
-		OutputPath:       outputPath,
-		Catalog:          catalog,
-		CatalogFile:      catalogFile,
-		ProjectDir:       projectDir,
-		SkipPaths:        skipPaths,
+		DocumentName:      documentName,
+		DocumentVersion:   documentVersion,
+		Authors:           authors,
+		AttestationTypes:  attestationTypes,
+		OutputFormat:      outputFormat,
+		OutputPath:        outputPath,
+		Catalog:           catalog,
+		CatalogFile:       catalogFile,
+		ProjectDir:        projectDir,
+		SkipPaths:         skipPaths,
+		IncludeOwnedFiles: includeOwnedFiles,
 	}
 
 	gen := generator.New(opts)
