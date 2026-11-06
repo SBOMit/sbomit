@@ -35,9 +35,8 @@ func TestResolveAttestationsDirect(t *testing.T) {
 		t.Errorf("package count mismatch: Resolve=%d vs ResolveAttestations=%d",
 			len(resultFromBytes.Packages), len(resultFromParsed.Packages))
 	}
-	if len(resultFromBytes.Files) != len(resultFromParsed.Files) {
-		t.Errorf("file count mismatch: Resolve=%d vs ResolveAttestations=%d",
-			len(resultFromBytes.Files), len(resultFromParsed.Files))
+	if a, b := len(allFiles(resultFromBytes)), len(allFiles(resultFromParsed)); a != b {
+		t.Errorf("file count mismatch: Resolve=%d vs ResolveAttestations=%d", a, b)
 	}
 }
 
@@ -99,49 +98,6 @@ func TestResolveEmptyInput(t *testing.T) {
 	}
 }
 
-func TestUnownedFiles(t *testing.T) {
-	r := &Result{
-		Files: []File{
-			{Path: "/a"},
-			{Path: "/b"},
-			{Path: "/c"},
-		},
-		Relationships: []Relationship{
-			{Type: Contains, FromPackageID: "p1", ToPath: "/b"},
-		},
-	}
-
-	unowned := r.UnownedFiles()
-	if len(unowned) != 2 {
-		t.Fatalf("expected 2 unowned files, got %d", len(unowned))
-	}
-	if unowned[0].Path != "/a" || unowned[1].Path != "/c" {
-		t.Errorf("unexpected unowned files: %v", unowned)
-	}
-}
-
-func TestPackageByID(t *testing.T) {
-	r := &Result{
-		Packages: []Package{
-			{ID: "abc", Name: "foo"},
-			{ID: "def", Name: "bar"},
-		},
-	}
-
-	pkg, ok := r.PackageByID("def")
-	if !ok {
-		t.Fatal("expected to find package with ID def")
-	}
-	if pkg.Name != "bar" {
-		t.Errorf("expected Name bar, got %s", pkg.Name)
-	}
-
-	_, ok = r.PackageByID("nonexistent")
-	if ok {
-		t.Fatal("expected not to find nonexistent package")
-	}
-}
-
 // Output digests are sorted copies, so a caller mutating a result cannot reach
 // back into the resolvers, and two runs order them identically.
 func TestCopyDigestsSortsAndCopies(t *testing.T) {
@@ -175,15 +131,17 @@ func TestResolveOrjsonWitness(t *testing.T) {
 	if got := len(result.Packages); got != 89 {
 		t.Errorf("expected 89 packages, got %d", got)
 	}
-	if got := len(result.Files); got != 10835 {
-		t.Errorf("expected 10835 files, got %d", got)
+	if got := len(result.Files); got != 1554 {
+		t.Errorf("expected 1554 unclaimed files, got %d", got)
 	}
-	if got := len(result.UnownedFiles()); got != 1554 {
-		t.Errorf("expected 1554 unowned files, got %d", got)
+
+	files := allFiles(result)
+	if got := len(files); got != 10835 {
+		t.Errorf("expected 10835 files in all, got %d", got)
 	}
 
 	var withDigest int
-	for _, f := range result.Files {
+	for _, f := range files {
 		if len(f.Digests) > 0 {
 			withDigest++
 		}
@@ -201,31 +159,6 @@ func TestResolveOrjsonWitness(t *testing.T) {
 	}
 	if withPackageDigest != 82 {
 		t.Errorf("expected 82 packages to claim a digest, got %d", withPackageDigest)
-	}
-}
-
-// OmitOwnedFiles leaves exactly the paths no package claimed.
-func TestResolveOmitOwnedFiles(t *testing.T) {
-	data, err := os.ReadFile(filepath.Join("..", "..", "test", "python-rioxarray.json"))
-	if err != nil {
-		t.Fatalf("read sample: %v", err)
-	}
-
-	full, err := Resolve(data, Options{})
-	if err != nil {
-		t.Fatalf("resolve: %v", err)
-	}
-	lean, err := Resolve(data, Options{OmitOwnedFiles: true})
-	if err != nil {
-		t.Fatalf("resolve: %v", err)
-	}
-
-	unowned := full.UnownedFiles()
-	if len(unowned) == 0 || len(unowned) == len(full.Files) {
-		t.Fatalf("the sample needs both owned and unowned files, got %d of %d", len(unowned), len(full.Files))
-	}
-	if len(lean.Files) != len(unowned) {
-		t.Errorf("OmitOwnedFiles: got %d files, want the %d unowned", len(lean.Files), len(unowned))
 	}
 }
 
@@ -318,17 +251,8 @@ func TestResolveReportsPathAndNetworkEvidenceTogether(t *testing.T) {
 		t.Errorf("yallist rests on its download alone, got %+v", yallist.Evidence)
 	}
 
-	var semverFiles, yallistFiles int
-	for _, rel := range result.Relationships {
-		switch rel.FromPackageID {
-		case semver.ID:
-			semverFiles++
-		case yallist.ID:
-			yallistFiles++
-		}
-	}
-	if semverFiles != 2 || yallistFiles != 0 {
-		t.Errorf("semver should own both observed files and yallist none, got %d and %d", semverFiles, yallistFiles)
+	if len(semver.Files) != 2 || len(yallist.Files) != 0 {
+		t.Errorf("semver should own both observed files and yallist none, got %d and %d", len(semver.Files), len(yallist.Files))
 	}
 }
 
@@ -411,8 +335,10 @@ func TestResolveReportsDownloadOnlyPackages(t *testing.T) {
 
 	// The flat paths are still reported as files; they just own nothing,
 	// because no version can be attached to them.
-	if len(result.Relationships) != 0 {
-		t.Errorf("expected no ownership, got %d relationships", len(result.Relationships))
+	for _, p := range result.Packages {
+		if len(p.Files) != 0 {
+			t.Errorf("%s should own no files, got %d", p.PURL, len(p.Files))
+		}
 	}
 	if len(result.Files) != 2 {
 		t.Errorf("expected both flat paths as files, got %d", len(result.Files))
@@ -515,16 +441,32 @@ func TestResolveWithholdsTheDigestWhenArtifactsDisagree(t *testing.T) {
 	}
 }
 
-// citations returns the paths that identified a package: its evident-by
-// relationships.
-func citations(result *Result, p Package) []string {
-	var out []string
-	for _, rel := range result.Relationships {
-		if rel.FromPackageID == p.ID && rel.Type == EvidentBy {
-			out = append(out, rel.ToPath)
+// allFiles returns every reported path: owned and unclaimed.
+func allFiles(r *Result) []File {
+	files := append([]File(nil), r.Files...)
+	for _, p := range r.Packages {
+		files = append(files, p.Files...)
+	}
+	return files
+}
+
+// citations returns the path a resolver identified a package from: its path
+// evidence other than the artifact, or the artifact if that was cited.
+func citations(p Package) []string {
+	var cited, artifacts []string
+	for _, e := range p.Evidence {
+		switch {
+		case e.Source != SourcePath:
+		case e.Artifact:
+			artifacts = append(artifacts, e.Location)
+		default:
+			cited = append(cited, e.Location)
 		}
 	}
-	return out
+	if len(cited) == 0 {
+		return artifacts
+	}
+	return cited
 }
 
 func purlsOf(result *Result) []string {

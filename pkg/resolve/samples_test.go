@@ -207,12 +207,12 @@ func TestResolveSamples(t *testing.T) {
 
 			if len(tc.packages) == 0 {
 				// Needs real vendor paths, or this passes on an empty sample.
-				if len(result.Files) < 5 {
+				if len(allFiles(result)) < 5 {
 					t.Fatalf("only %d paths reached the resolvers; this case needs a real "+
-						"sample of the layout to assert anything", len(result.Files))
+						"sample of the layout to assert anything", len(allFiles(result)))
 				}
 				var inLayout int
-				for _, f := range result.Files {
+				for _, f := range allFiles(result) {
 					if strings.Contains(f.Path, "/vendor/") {
 						inLayout++
 					}
@@ -221,15 +221,6 @@ func TestResolveSamples(t *testing.T) {
 					t.Fatal("no vendored paths in the sample, so the assertion is vacuous")
 				}
 				return
-			}
-
-			owners := make(map[string]int, len(result.Relationships))
-			for _, rel := range result.Relationships {
-				pkg, ok := result.PackageByID(rel.FromPackageID)
-				if !ok {
-					t.Fatalf("relationship names unknown package %q", rel.FromPackageID)
-				}
-				owners[pkg.PURL]++
 			}
 
 			for _, p := range result.Packages {
@@ -257,16 +248,16 @@ func TestResolveSamples(t *testing.T) {
 					t.Errorf("%s claims digest %q, want %q", p.PURL, digest, want)
 				}
 
-				cited := citations(result, p)
+				cited := citations(p)
 				if slices.Contains(tc.downloadOnly, p.PURL) {
 					for _, e := range p.Evidence {
 						if e.Source != SourceNetwork {
 							t.Errorf("%s should rest on downloads alone, got %+v", p.PURL, e)
 						}
 					}
-					if len(cited) != 0 || owners[p.PURL] != 0 {
+					if len(cited) != 0 || len(p.Files) != 0 {
 						t.Errorf("%s was never observed on disk, but cites %v and owns %d files",
-							p.PURL, cited, owners[p.PURL])
+							p.PURL, cited, len(p.Files))
 					}
 					continue
 				}
@@ -280,7 +271,7 @@ func TestResolveSamples(t *testing.T) {
 				} else if !strings.HasSuffix(cited[0], suffix) {
 					t.Errorf("%s cites %q, want a path ending in %q", p.PURL, cited[0], suffix)
 				}
-				if owners[p.PURL] == 0 {
+				if len(p.Files) == 0 {
 					t.Errorf("%s owns no files, but its contents were observed", p.PURL)
 				}
 			}
@@ -315,7 +306,7 @@ func TestResolveSamplesCarryNoEmptyContentDigest(t *testing.T) {
 				check(e.Location, e.Digests)
 			}
 		}
-		for _, f := range result.Files {
+		for _, f := range allFiles(result) {
 			check(f.Path, f.Digests)
 		}
 	}
@@ -330,7 +321,7 @@ func TestResolveSamplesLeaveP2BundlesUnclaimed(t *testing.T) {
 	result := resolveSample(t, "java-google-java-format")
 
 	var p2 int
-	for _, f := range result.UnownedFiles() {
+	for _, f := range result.Files {
 		if strings.Contains(f.Path, "/repository/p2/") {
 			p2++
 		}
@@ -352,14 +343,14 @@ func TestResolveSamplesExcludeTheCondaBaseInstallation(t *testing.T) {
 		t.Fatal("the sample carries no base-installation path, so this test asserts nothing")
 	}
 
-	result := resolveSample(t, "python-rioxarray")
-	for _, f := range result.Files {
+	files := allFiles(resolveSample(t, "python-rioxarray"))
+	for _, f := range files {
 		if strings.HasPrefix(f.Path, base) && !strings.HasPrefix(f.Path, base+"envs/") {
 			t.Errorf("a base-installation path reached the result: %s", f.Path)
 		}
 	}
 	var env int
-	for _, f := range result.Files {
+	for _, f := range files {
 		if strings.HasPrefix(f.Path, base+"envs/rioxarray/") {
 			env++
 		}
@@ -408,33 +399,30 @@ func TestResolveSamplesAreSelfConsistent(t *testing.T) {
 		result := resolveSample(t, name)
 
 		for _, p := range result.Packages {
-			if p.ID == "" || p.Name == "" || p.Ecosystem == "" || p.PURL == "" || len(p.Evidence) == 0 {
+			if p.Name == "" || p.Ecosystem == "" || p.PURL == "" || len(p.Evidence) == 0 {
 				t.Errorf("%s: %s is missing a required field: %+v", name, p.PURL, p)
 			}
 		}
 
-		var evident int
-		for _, rel := range result.Relationships {
-			if _, ok := result.PackageByID(rel.FromPackageID); !ok {
-				t.Errorf("%s: relationship names unknown package %q", name, rel.FromPackageID)
-			}
-			switch rel.Type {
-			case EvidentBy:
-				evident++
-			case Contains:
-			default:
-				t.Errorf("%s: unexpected relationship type %q", name, rel.Type)
-			}
+		// Each path is reported once, and a package owns its path evidence.
+		seen := make(map[string]bool)
+		for _, f := range result.Files {
+			seen[f.Path] = true
 		}
-
-		var withPath int
 		for _, p := range result.Packages {
-			if slices.ContainsFunc(p.Evidence, func(e Evidence) bool { return e.Source == SourcePath }) {
-				withPath++
+			owns := make(map[string]bool, len(p.Files))
+			for _, f := range p.Files {
+				if seen[f.Path] {
+					t.Errorf("%s: %s is reported twice", name, f.Path)
+				}
+				seen[f.Path] = true
+				owns[f.Path] = true
 			}
-		}
-		if evident != withPath {
-			t.Errorf("%s: %d evident-by edges for %d packages with path evidence", name, evident, withPath)
+			for _, e := range p.Evidence {
+				if e.Source == SourcePath && !owns[e.Location] {
+					t.Errorf("%s: %s has path evidence %s but does not own it", name, p.PURL, e.Location)
+				}
+			}
 		}
 
 		if first, again := fingerprint(result), fingerprint(resolveSample(t, name)); first != again {
@@ -447,13 +435,13 @@ func TestResolveSamplesAreSelfConsistent(t *testing.T) {
 func fingerprint(r *Result) string {
 	var sb strings.Builder
 	for _, p := range r.Packages {
-		sb.WriteString(p.ID + " " + p.PURL + "\n")
+		sb.WriteString(p.PURL + "\n")
 		for _, e := range p.Evidence {
 			sb.WriteString("  " + string(e.Source) + " " + e.Location + "\n")
 		}
-	}
-	for _, rel := range r.Relationships {
-		sb.WriteString(string(rel.Type) + " " + rel.FromPackageID + " " + rel.ToPath + "\n")
+		for _, f := range p.Files {
+			sb.WriteString("  owns " + f.Path + "\n")
+		}
 	}
 	for _, f := range r.Files {
 		sb.WriteString(f.Path + "\n")

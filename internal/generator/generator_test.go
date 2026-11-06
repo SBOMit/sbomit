@@ -1,11 +1,15 @@
 package generator
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/protobom/protobom/pkg/formats"
 	"github.com/protobom/protobom/pkg/sbom"
 	"github.com/protobom/protobom/pkg/writer"
+
+	"github.com/sbomit/sbomit/pkg/resolve"
 )
 
 func TestGenerateFromAttestationsCanUseCatalogFile(t *testing.T) {
@@ -134,5 +138,53 @@ func testPackageNode(purl string) *sbom.Node {
 		Identifiers: map[int32]string{
 			int32(sbom.SoftwareIdentifierType_PURL): purl,
 		},
+	}
+}
+
+// By default every package is listed but only the unclaimed file nodes;
+// IncludeOwnedFiles adds the owned ones.
+func TestCreateDocumentIncludeOwnedFiles(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "test", "python-rioxarray.json"))
+	if err != nil {
+		t.Fatalf("read sample: %v", err)
+	}
+	result, err := resolve.Resolve(data, resolve.Options{})
+	if err != nil {
+		t.Fatalf("resolve: %v", err)
+	}
+	result = applyRules(result)
+
+	owned := 0
+	for _, p := range result.Packages {
+		owned += len(p.Files)
+	}
+	if owned == 0 || len(result.Files) == 0 {
+		t.Fatalf("the sample needs owned and unclaimed files, got %d and %d", owned, len(result.Files))
+	}
+
+	count := func(doc *sbom.Document) (packages, files int) {
+		for _, n := range doc.NodeList.Nodes {
+			if n.Type == sbom.Node_FILE {
+				files++
+			} else {
+				packages++
+			}
+		}
+		return packages, files
+	}
+
+	if DefaultOptions().IncludeOwnedFiles {
+		t.Fatal("owned files should be left out by default")
+	}
+	full := DefaultOptions()
+	full.IncludeOwnedFiles = true
+	fullPkgs, fullFiles := count(New(full).createDocument(result))
+	leanPkgs, leanFiles := count(New(DefaultOptions()).createDocument(result))
+
+	if fullFiles != owned+len(result.Files) {
+		t.Errorf("IncludeOwnedFiles: got %d file nodes, want %d", fullFiles, owned+len(result.Files))
+	}
+	if leanFiles != len(result.Files) || leanPkgs != fullPkgs {
+		t.Errorf("default: got %d packages and %d files, want %d and %d", leanPkgs, leanFiles, fullPkgs, len(result.Files))
 	}
 }

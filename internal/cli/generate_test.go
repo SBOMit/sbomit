@@ -151,6 +151,7 @@ func snapshotGenerateGlobals() func() {
 	prevProjectDir := projectDir
 	prevSkipPaths := append([]string(nil), skipPaths...)
 	prevSummaryFlag := summaryFlag
+	prevIncludeOwnedFiles := includeOwnedFiles
 
 	return func() {
 		outputPath = prevOutputPath
@@ -164,6 +165,7 @@ func snapshotGenerateGlobals() func() {
 		projectDir = prevProjectDir
 		skipPaths = prevSkipPaths
 		summaryFlag = prevSummaryFlag
+		includeOwnedFiles = prevIncludeOwnedFiles
 	}
 }
 
