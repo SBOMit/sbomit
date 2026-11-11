@@ -10,7 +10,9 @@ import (
 // the SBOM. A rule is set per ecosystem and package manager and says which
 // evidence it includes. By default only install paths are included; network
 // requests are additional provenance. npm is the exception: its install paths
-// carry no version, so an artifact it downloaded is included too.
+// carry no version, so an artifact it downloaded is included too. A file
+// whose content hash a lookup service found in a package (--hash-lookup-url)
+// is as strong as an install path, so hash evidence is included too.
 
 // ruleKey is what a rule is looked up by.
 type ruleKey struct {
@@ -22,16 +24,17 @@ type ruleKey struct {
 type rule struct {
 	includePaths     bool
 	includeDownloads bool
+	includeHashes    bool
 }
 
 // defaultRule applies to every pair not in rules. Here we define the default
 // behavior: only include path evidence, not network requests.
 // As package managers fetch more than they install.
-var defaultRule = rule{includePaths: true}
+var defaultRule = rule{includePaths: true, includeHashes: true}
 
 // rules overrides defaultRule. To handle a new package manager, add its pair.
 var rules = map[ruleKey]rule{
-	{ecosystem: "npm", pkgMgr: "npm"}: {includePaths: true, includeDownloads: true},
+	{ecosystem: "npm", pkgMgr: "npm"}: {includePaths: true, includeDownloads: true, includeHashes: true},
 }
 
 func lookupRule(ecosystem, pkgMgr string) rule {
@@ -51,6 +54,8 @@ func shouldInclude(pkg resolve.Package) bool {
 			return true
 		case e.Source == resolve.SourceNetwork && r.includeDownloads && e.Artifact:
 			// A download counts only if it is the artifact.
+			return true
+		case e.Source == resolve.SourceHash && r.includeHashes:
 			return true
 		}
 	}

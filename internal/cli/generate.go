@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sbomit/sbomit/internal/generator"
 	"github.com/spf13/cobra"
@@ -22,6 +23,8 @@ var (
 	skipPaths         []string
 	summaryFlag       bool
 	includeOwnedFiles bool
+	hashLookupURL     string
+	hashLookupTimeout time.Duration
 )
 
 var generateCmd = &cobra.Command{
@@ -78,6 +81,8 @@ func init() {
 	generateCmd.Flags().StringSliceVar(&skipPaths, "skip-path", []string{}, "Exclude paths matching glob pattern")
 	generateCmd.Flags().BoolVar(&summaryFlag, "summary", false, "Also print per-package details under each ecosystem (default: only ecosystem counts are shown)")
 	generateCmd.Flags().BoolVar(&includeOwnedFiles, "include-owned-files", false, "Also list the files each package owns (default: only files no package owns)")
+	generateCmd.Flags().StringVar(&hashLookupURL, "hash-lookup-url", "", "Attribute unclaimed system files to OS packages by sha256 using this debhash-compatible service (off by default; sends system file paths and hashes to it)")
+	generateCmd.Flags().DurationVar(&hashLookupTimeout, "hash-lookup-timeout", 60*time.Second, "Timeout for the hash lookup service")
 }
 
 func runGenerate(attestationFile string) error {
@@ -120,6 +125,8 @@ func runGenerate(attestationFile string) error {
 		ProjectDir:        projectDir,
 		SkipPaths:         skipPaths,
 		IncludeOwnedFiles: includeOwnedFiles,
+		HashLookupURL:     hashLookupURL,
+		HashLookupTimeout: hashLookupTimeout,
 	}
 
 	gen := generator.New(opts)

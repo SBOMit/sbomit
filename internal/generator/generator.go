@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/sbomit/sbomit/pkg/attestation"
+	"github.com/sbomit/sbomit/pkg/hashlookup"
 	"github.com/sbomit/sbomit/pkg/resolve"
 )
 
@@ -34,6 +35,11 @@ type Options struct {
 	// IncludeOwnedFiles adds file nodes for files a package owns; by default
 	// only unclaimed files are listed.
 	IncludeOwnedFiles bool
+	// HashLookupURL, when set, is a debhash-compatible service used to
+	// attribute unclaimed system files to OS packages by sha256.
+	HashLookupURL string
+	// HashLookupTimeout bounds that call (0 = the library default).
+	HashLookupTimeout time.Duration
 }
 
 // DefaultOptions returns default generator options
@@ -128,12 +134,20 @@ func (g *Generator) GenerateFromAttestations(attestations []attestation.TypedAtt
 
 	// The library is the single resolution path, so the SBOM the CLI emits and
 	// the result an importer sees are produced by the same code.
-	result, err := resolve.ResolveAttestations(attestations, resolve.Options{
-		AttestationTypes: g.opts.AttestationTypes,
-		ExcludePaths:     g.opts.SkipPaths,
-	})
+	resolveOpts := resolve.Options{
+		AttestationTypes:  g.opts.AttestationTypes,
+		ExcludePaths:      g.opts.SkipPaths,
+		HashLookupTimeout: g.opts.HashLookupTimeout,
+	}
+	if g.opts.HashLookupURL != "" {
+		resolveOpts.HashLookup = &hashlookup.Client{URL: g.opts.HashLookupURL}
+	}
+	result, err := resolve.ResolveAttestations(attestations, resolveOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve attestations: %w", err)
+	}
+	for _, w := range result.Warnings {
+		fmt.Fprintln(os.Stderr, "warning:", w)
 	}
 
 	// The CLI's processing rules; see rules.go.

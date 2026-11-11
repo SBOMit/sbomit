@@ -122,6 +122,7 @@ func TestShouldInclude(t *testing.T) {
 	path := resolve.Evidence{Source: resolve.SourcePath}
 	artifact := resolve.Evidence{Source: resolve.SourceNetwork, Artifact: true}
 	metadata := resolve.Evidence{Source: resolve.SourceNetwork}
+	hash := resolve.Evidence{Source: resolve.SourceHash}
 
 	for _, tc := range []struct {
 		ecosystem, pkgMgr string
@@ -135,6 +136,7 @@ func TestShouldInclude(t *testing.T) {
 		{"npm", "npm", artifact, true},
 		{"npm", "npm", metadata, false},
 		{"golang", "", artifact, false},
+		{"deb", "dpkg", hash, true}, // OS package found by --hash-lookup-url
 	} {
 		tc.e.PkgMgr = tc.pkgMgr
 		pkg := resolve.Package{Ecosystem: tc.ecosystem, Evidence: []resolve.Evidence{tc.e}}
