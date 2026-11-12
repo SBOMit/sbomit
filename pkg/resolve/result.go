@@ -32,6 +32,10 @@ type Result struct {
 	// Files are the attested paths no package claimed. A package's own files
 	// are in [Package.Files].
 	Files []File
+
+	// Warnings are problems that did not stop resolution, such as an
+	// unreachable hash lookup service.
+	Warnings []string
 }
 
 // Package is one package the attestation shows, from paths, requests, or both.
@@ -39,7 +43,8 @@ type Package struct {
 	Name    string
 	Version string
 
-	// Ecosystem is the PURL type: pypi, conda, golang, cargo, npm, maven.
+	// Ecosystem is the PURL type: pypi, conda, golang, cargo, npm, maven,
+	// or deb for OS packages found by hash lookup.
 	Ecosystem string
 
 	// PURL identifies the package; a Result has one Package per PURL.
@@ -69,6 +74,10 @@ const (
 
 	// SourceNetwork is a request in a network-trace attestation.
 	SourceNetwork Source = "network"
+
+	// SourceHash is an attested file whose sha256 a hash lookup service
+	// found in the package (see [Options.HashLookup]).
+	SourceHash Source = "hash"
 )
 
 // Evidence is one observation a package rests on.

@@ -68,6 +68,24 @@ sbomit generate attestation.json --catalog-file existing.spdx.json --output merg
 
 `--catalog-file` cannot be used with `--catalog`; use one catalog source per run.
 
+## Hash Lookup Option (OS packages)
+
+Path patterns can't attribute OS files such as `/lib/aarch64-linux-gnu/libc.so.6`, because the path carries no version. Witness does record each file's sha256, though. With `--hash-lookup-url`, sbomit sends the sha256 of every **unclaimed system file** to a [debhash](https://github.com/jd869/debhash)-compatible service, which maps it to the exact Debian/Ubuntu package version:
+
+```bash
+sbomit generate attestation.json --hash-lookup-url http://127.0.0.1:8080
+```
+
+- **Off by default.** Without the flag, nothing is sent anywhere.
+- **What is sent:** only system paths (`/usr` except `/usr/local`, `/lib`, `/bin`, `/sbin`, `/etc`, `/opt`) and their sha256. Workspace, home and temp paths are never sent. Only files no path resolver claimed are considered.
+- **What you get:** `pkg:deb/...` packages with `hash` evidence, owning the matched files, for example `pkg:deb/ubuntu/libc6@2.39-0ubuntu8.6?arch=arm64&upstream=glibc&distro=ubuntu-24.04`. The service detects the distro and architecture from the files.
+- **Ambiguous versions:** when the attested files are identical across several versions of a package (e.g. pure-Python packages), it is listed without a version rather than with a guess.
+- **Failures:** if the service is unreachable, sbomit prints a warning and the files stay unclaimed (`--hash-lookup-timeout`, default 60s).
+
+On the orjson attestation in `test/`, this adds 43 Ubuntu packages and leaves 7 of 49 system files unclaimed. Those 7 can't be attributed: files created on the machine (`/etc/hosts`, `/etc/resolv.conf`, `ld.so.cache`, the CA bundle, `/etc/localtime`), a rustup config, and one path witness recorded without a hash.
+
+Library users set `resolve.Options.HashLookup` (any `hashlookup.Attributor`; `hashlookup.Client` talks to the service).
+
 ## Library
 
 Other tools can import the resolver instead of running the CLI:
@@ -164,11 +182,13 @@ Ecosystem-specific package resolvers that extract packages from file paths:
 
 Each resolver implements `Resolver` and optionally `OwnershipFilterer` to claim its own package files.
 
+After the resolvers, the optional hash lookup pass (`pkg/hashlookup`, enabled by `resolve.Options.HashLookup`) attributes the remaining system files to OS packages by sha256.
+
 ### Processing Pipeline
 
 ```
 Attestation → Extract Files → Filter Cache Files → 
-Run Resolvers → Filter Package Files → Generate SBOM
+Run Resolvers → Filter Package Files → [Hash Lookup] → Generate SBOM
 ```
 
 ## Testing

@@ -43,16 +43,25 @@ func ResolveAttestations(attestations []attestation.TypedAttestation, opts Optio
 	// Run through the ecosystem resolver chain (python, go, rust, js, maven).
 	resolved := resolver.NewResolverChain().ResolveAll(files)
 
+	// Optionally attribute the remaining system files to OS packages by hash.
+	var hashed []hashedPackage
+	var warnings []string
+	if opts.HashLookup != nil {
+		hashed, resolved.Files, warnings = attributeByHash(opts, resolved.Files)
+	}
+
 	// Requests the build made. Reported alongside paths; weighing them is the
 	// caller's decision.
 	downloads := network.NewChain().ResolveAll(network.ExtractConnections(attestations))
 
-	return assemble(resolved, files, downloads), nil
+	out := assemble(resolved, files, downloads, hashed)
+	out.Warnings = warnings
+	return out, nil
 }
 
 // assemble builds the public Result: one Package per PURL with evidence from
 // paths and requests and the files it owns, plus the unclaimed files.
-func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, downloads []network.Download) *Result {
+func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, downloads []network.Download, hashed []hashedPackage) *Result {
 	out := &Result{}
 
 	digestsByPath := make(map[string][]Digest, len(observed))
@@ -89,12 +98,25 @@ func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, do
 		}})
 	}
 
+	for _, hp := range hashed {
+		ev := make([]Evidence, 0, len(hp.matches))
+		for _, m := range hp.matches {
+			ev = append(ev, Evidence{
+				Source:   m.source,
+				PkgMgr:   hp.info.PkgMgr,
+				Location: m.path,
+				Digests:  copyDigests(digestsByPath[m.path]),
+			})
+		}
+		add(hp.info, ev)
+	}
+
 	for i := range out.Packages {
 		pkg := &out.Packages[i]
 		sort.SliceStable(pkg.Evidence, func(a, b int) bool {
 			ea, eb := pkg.Evidence[a], pkg.Evidence[b]
 			if ea.Source != eb.Source {
-				return ea.Source == SourcePath
+				return sourceRank[ea.Source] < sourceRank[eb.Source]
 			}
 			return ea.Location < eb.Location
 		})
@@ -108,6 +130,15 @@ func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, do
 			File{Path: owned.Path, Digests: copyDigests(owned.Digests)})
 	}
 
+	// Hash-matched files belong to their package (matches are path-sorted).
+	for _, hp := range hashed {
+		i := index[hp.info.PURL]
+		for _, m := range hp.matches {
+			out.Packages[i].Files = append(out.Packages[i].Files,
+				File{Path: m.path, Digests: copyDigests(digestsByPath[m.path])})
+		}
+	}
+
 	for _, f := range resolved.Files {
 		out.Files = append(out.Files, File{Path: f.Path, Digests: copyDigests(f.Digests)})
 	}
@@ -118,6 +149,9 @@ func assemble(resolved resolver.ResolverResult, observed []resolver.FileInfo, do
 
 	return out
 }
+
+// sourceRank orders a package's evidence: paths, then hashes, then requests.
+var sourceRank = map[Source]int{SourcePath: 0, SourceHash: 1, SourceNetwork: 2}
 
 // pathEvidence is each cited path, plus the artifact if it is another file.
 func pathEvidence(pkg resolver.PackageInfo, digestsByPath map[string][]Digest) []Evidence {
