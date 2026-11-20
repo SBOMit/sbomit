@@ -87,10 +87,12 @@ func decodeBase64Any(s string) ([]byte, error) {
 func extractAttestations(predicate map[string]interface{}, typeFilter []string) ([]TypedAttestation, error) {
 	var result []TypedAttestation
 
+	// Filter values are canonicalized the same way attestation types are, so
+	// "material", "Material" and the witness URI all select the same type.
 	filterSet := make(map[string]struct{})
 	if len(typeFilter) > 0 {
 		for _, t := range typeFilter {
-			normalized := normalizeAttestationType(t)
+			normalized := canonicalAttestationType(t)
 			if normalized == "" {
 				continue
 			}
