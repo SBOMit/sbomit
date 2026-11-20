@@ -43,7 +43,7 @@ func (c *ExtractorChain) ExtractAll(attestations []TypedAttestation, typeFilter 
 	filterSet := make(map[string]struct{})
 	if len(typeFilter) > 0 {
 		for _, t := range typeFilter {
-			filterSet[t] = struct{}{}
+			filterSet[canonicalAttestationType(t)] = struct{}{}
 		}
 	}
 
@@ -51,13 +51,15 @@ func (c *ExtractorChain) ExtractAll(attestations []TypedAttestation, typeFilter 
 	index := make(map[string]int)
 
 	for _, att := range attestations {
+		attType := canonicalAttestationType(att.Type)
+
 		if len(filterSet) > 0 {
-			if _, ok := filterSet[att.Type]; !ok {
+			if _, ok := filterSet[attType]; !ok {
 				continue
 			}
 		}
 
-		extractor, ok := c.extractors[att.Type]
+		extractor, ok := c.extractors[attType]
 		if !ok {
 			continue
 		}
